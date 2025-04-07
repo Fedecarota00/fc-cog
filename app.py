@@ -193,22 +193,13 @@ if st.button("✨ Generate AI Message"):
 
     preview_prompt += "Keep it under 250 characters."
 
-    preview_prompt = (
-    f"You're writing a LinkedIn connection request to {test_first_name}, "
-    f"who is a {test_position} at {test_company}. "
-    f"{tone_instructions[tone]} "
-)
-
-if custom_instruction:
-    preview_prompt += f"{custom_instruction}. "
-
-preview_prompt += "Keep it under 250 characters."
-    )
     try:
         response = openai.ChatCompletion.create(
             model="gpt-4-turbo",
-            messages=[{"role": "system", "content": "You are a LinkedIn outreach assistant."},
-                      {"role": "user", "content": preview_prompt}],
+            messages=[
+                {"role": "system", "content": "You are a LinkedIn outreach assistant."},
+                {"role": "user", "content": preview_prompt}
+            ],
             temperature=0.9,
             max_tokens=100
         )
@@ -218,7 +209,7 @@ preview_prompt += "Keep it under 250 characters."
         with st.expander("🔍 Show full AI prompt"):
             st.code(preview_prompt, language="text")
     except Exception as e:
-        st.error("Failed to generate message. Please try again later.")
+        st.error(f"Failed to generate message: {e}")
 st.markdown("Insert here the SalesFlow message you would like to send to each lead in the campaign:")
 use_ai = st.checkbox("✨ Use AI to generate personalized messages", value=True)
 default_template = "Hi {first_name}, I came across your profile as {position} at {company} – I'd love to connect!"
@@ -307,6 +298,7 @@ if st.button("🚀 Run Lead Qualification") and domains:
         st.download_button("⬇️ Download All as ZIP", data=zip_buffer.getvalue(), file_name="lead_outputs.zip")
     else:
         st.warning("No qualified leads found. Try a different domain or file.")
+
 
 
 
