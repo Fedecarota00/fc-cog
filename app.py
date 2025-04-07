@@ -192,7 +192,7 @@ if custom_instruction:
     preview_prompt += f"{custom_instruction}. "
 
 preview_prompt += "Keep it under 250 characters."
-    )
+    
     try:
         response = openai.ChatCompletion.create(
             model="gpt-4-turbo",
