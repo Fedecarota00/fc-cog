@@ -9,7 +9,7 @@ import os
 
 # === CONFIGURATION ===
 HUNTER_API_KEY = "f68566d43791af9b30911bc0fe8a65a89908d4fe"
-SCORE_THRESHOLD = 0
+SCORE_THRESHOLD = 50
 PUBLIC_DOMAINS = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com"]
 
 JOB_KEYWORDS = ["Chief Executive Officer", "CEO", "Chief Financial Officer", "CFO", "Chief Operating Officer", "COO",
@@ -49,25 +49,23 @@ def job_matches(position):
     if not position:
         return False
 
-    position_lower = position.lower()
+    position_words = set(position.lower().split())
+
     for keyword in JOB_KEYWORDS:
-        if keyword.lower() in position_lower:
+        keyword_words = set(keyword.lower().split())
+        # Controlla se tutte le parole della keyword sono presenti nella posizione
+        if keyword_words.issubset(position_words):
             return True
     return False
 
 def get_leads_from_hunter(domain):
-    url = f"https://api.hunter.io/v2/domain-search?domain={domain}&api_key={HUNTER_API_KEY}&limit=100&emails_type=all"
+    url = f"https://api.hunter.io/v2/domain-search?domain={domain}&api_key={HUNTER_API_KEY}&limit=100&emails_type=personal"
     response = requests.get(url)
     if response.status_code != 200:
         return [], f"Error fetching domain {domain}: {response.status_code}"
     data = response.json()
     emails = data.get("data", {}).get("emails", [])
     company = data.get("data", {}).get("organization")
-
-    # Debug: Print all retrieved emails
-    for email in emails:
-        st.text(f"RAW: {email.get('first_name')} {email.get('last_name')} | {email.get('value')} | {email.get('position')} | Score: {email.get('confidence')}")
-
     for email in emails:
         email["company"] = company
     return emails, None
@@ -80,30 +78,18 @@ def filter_leads(leads):
         score = lead.get("confidence", 0)
         linkedin = lead.get("linkedin") or lead.get("linkedin_url")
         company = lead.get("company", "N/A")
-
-        # Debug reasons for skipping
-        if not email:
-            st.info("Skipped: No email")
+        if not email or is_public_email(email) or score < SCORE_THRESHOLD:
             continue
-        if is_public_email(email):
-            st.info(f"Skipped: Public email – {email}")
-            continue
-        if score < SCORE_THRESHOLD:
-            st.info(f"Skipped: Low score ({score}) – {email}")
-            continue
-        if not job_matches(position):
-            st.info(f"Skipped: No match on title – {position}")
-            continue
-
-        qualified.append({
-            "Email": email,
-            "Full Name": (lead.get("first_name") or "") + " " + (lead.get("last_name") or ""),
-            "Position": position,
-            "Confidence Score": score,
-            "LinkedIn": linkedin,
-            "Company": company,
-            "Company Domain": lead.get("domain")
-        })
+        if job_matches(position):
+            qualified.append({
+                "Email": email,
+                "Full Name": (lead.get("first_name") or "") + " " + (lead.get("last_name") or ""),
+                "Position": position,
+                "Confidence Score": score,
+                "LinkedIn": linkedin,
+                "Company": company,
+                "Company Domain": lead.get("domain")
+            })
     return qualified
 
 def split_full_name(full_name):
@@ -316,5 +302,4 @@ if st.button("🚀 Run Lead Qualification") and domains:
 
     else:
         st.warning("No qualified leads found. Try a different domain or file.")
-
 
