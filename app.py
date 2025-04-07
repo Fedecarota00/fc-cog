@@ -5,6 +5,7 @@ import time
 from io import BytesIO
 import zipfile
 from PIL import Image
+import os
 
 # === CONFIGURATION ===
 HUNTER_API_KEY = "f68566d43791af9b30911bc0fe8a65a89908d4fe"
@@ -110,6 +111,11 @@ def generate_salesflow_data(qualified_leads):
 
 # === STREAMLIT UI ===
 st.set_page_config(page_title="Lead Qualifier", layout="centered")
+
+# === LOGO ===
+logo_path = "ecr_logo_resized.png"
+if os.path.exists(logo_path):
+    st.image(logo_path, width=120)
 
 st.markdown("""
 <h2 style='text-align: center; color: #ffffff; background-color: #001F54; padding: 15px; border-radius: 10px;'>
