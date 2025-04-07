@@ -193,6 +193,10 @@ if st.button("✨ Generate AI Message"):
 
     preview_prompt += "Keep it under 250 characters."
 
+    # Debug: show the full prompt to be sent
+    st.write("🔍 Prompt being sent to OpenAI:")
+    st.code(preview_prompt)
+
     try:
         response = openai.ChatCompletion.create(
             model="gpt-4-turbo",
@@ -298,6 +302,7 @@ if st.button("🚀 Run Lead Qualification") and domains:
         st.download_button("⬇️ Download All as ZIP", data=zip_buffer.getvalue(), file_name="lead_outputs.zip")
     else:
         st.warning("No qualified leads found. Try a different domain or file.")
+
 
 
 
