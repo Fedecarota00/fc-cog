@@ -53,6 +53,13 @@ def job_matches(position):
     if not position:
         return False
     position = position.lower()
+    position_words = set(position.split())
+    for keyword in JOB_KEYWORDS:
+        keyword_words = set(keyword.lower().split())
+        if keyword_words.issubset(position_words):
+            return True
+    return False
+    position = position.lower()
     for keyword in JOB_KEYWORDS:
         if keyword.lower() in position:
             return True
@@ -152,6 +159,42 @@ SCORE_THRESHOLD = st.slider("Minimum confidence score", min_value=0, max_value=1
 
 # --- Salesflow Message UI ---
 st.markdown("### ✍️ Customize your Salesflow message")
+
+# === Live AI Preview Box ===
+st.markdown("#### 🤖 Try AI Message Preview")
+with st.expander("Click to try AI on a sample lead"):
+    test_first_name = st.text_input("First Name", value="Alex")
+    test_position = st.text_input("Job Title", value="Chief Financial Officer")
+    test_company = st.text_input("Company", value="ING Bank")
+
+    tone = st.radio("Select message tone:", ["Friendly", "Formal", "Data-driven", "Short & Punchy"])
+
+    tone_instructions = {
+        "Friendly": "Write in a warm, conversational tone.",
+        "Formal": "Use a professional and respectful tone.",
+        "Data-driven": "Use language that emphasizes insights and value.",
+        "Short & Punchy": "Be concise, bold, and impactful."
+    }
+
+    if st.button("✨ Generate AI Message Preview"):
+        preview_prompt = (
+            f"You're writing a LinkedIn connection request to {test_first_name}, who is a {test_position} at {test_company}.
+"
+            f"{tone_instructions[tone]} Keep it under 250 characters."
+        )
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-4-turbo",
+                messages=[{"role": "system", "content": "You are a LinkedIn outreach assistant."},
+                          {"role": "user", "content": preview_prompt}],
+                temperature=0.9,
+                max_tokens=100
+            )
+            preview_message = response['choices'][0]['message']['content'].strip()
+            st.success("Here's your AI-generated message:")
+            st.info(preview_message)
+        except Exception as e:
+            st.error("Failed to generate message. Please try again later.")
 st.markdown("Insert here the SalesFlow message you would like to send to each lead in the campaign:")
 use_ai = st.checkbox("✨ Use AI to generate personalized messages", value=True)
 default_template = "Hi {first_name}, I came across your profile as {position} at {company} – I'd love to connect!"
@@ -240,6 +283,7 @@ if st.button("🚀 Run Lead Qualification") and domains:
         st.download_button("⬇️ Download All as ZIP", data=zip_buffer.getvalue(), file_name="lead_outputs.zip")
     else:
         st.warning("No qualified leads found. Try a different domain or file.")
+
 
 
 
