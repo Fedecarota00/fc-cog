@@ -63,6 +63,11 @@ def get_leads_from_hunter(domain):
     data = response.json()
     emails = data.get("data", {}).get("emails", [])
     company = data.get("data", {}).get("organization")
+
+    # Debug: Print all retrieved emails
+    for email in emails:
+        st.text(f"RAW: {email.get('first_name')} {email.get('last_name')} | {email.get('value')} | {email.get('position')} | Score: {email.get('confidence')}")
+
     for email in emails:
         email["company"] = company
     return emails, None
@@ -76,23 +81,29 @@ def filter_leads(leads):
         linkedin = lead.get("linkedin") or lead.get("linkedin_url")
         company = lead.get("company", "N/A")
 
-        # Debug line to check unqualified positions
-        if position and not job_matches(position):
-            print(f"Filtered out (no match): {position}")
-
-        if not email or is_public_email(email) or score < SCORE_THRESHOLD:
+        # Debug reasons for skipping
+        if not email:
+            st.info("Skipped: No email")
+            continue
+        if is_public_email(email):
+            st.info(f"Skipped: Public email – {email}")
+            continue
+        if score < SCORE_THRESHOLD:
+            st.info(f"Skipped: Low score ({score}) – {email}")
+            continue
+        if not job_matches(position):
+            st.info(f"Skipped: No match on title – {position}")
             continue
 
-        if job_matches(position):
-            qualified.append({
-                "Email": email,
-                "Full Name": (lead.get("first_name") or "") + " " + (lead.get("last_name") or ""),
-                "Position": position,
-                "Confidence Score": score,
-                "LinkedIn": linkedin,
-                "Company": company,
-                "Company Domain": lead.get("domain")
-            })
+        qualified.append({
+            "Email": email,
+            "Full Name": (lead.get("first_name") or "") + " " + (lead.get("last_name") or ""),
+            "Position": position,
+            "Confidence Score": score,
+            "LinkedIn": linkedin,
+            "Company": company,
+            "Company Domain": lead.get("domain")
+        })
     return qualified
 
 def split_full_name(full_name):
