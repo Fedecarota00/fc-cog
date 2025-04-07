@@ -66,6 +66,9 @@ def get_leads_from_hunter(domain):
     data = response.json()
     emails = data.get("data", {}).get("emails", [])
     company = data.get("data", {}).get("organization")
+    
+    # 🔇 Removed debug st.text()
+
     for email in emails:
         email["company"] = company
     return emails, None
