@@ -171,7 +171,8 @@ test_company = st.text_input("Company", value="ING Bank")
 tone = st.radio("Select message tone:", ["Friendly", "Formal", "Data-driven", "Short & Punchy"], horizontal=True)
 
 # Additional customization instruction
-custom_instruction = st.text_input("🛠️ Additional custom instructions to AI (optional):", placeholder="e.g. Mention that we are research providers")
+st.markdown("#### 🛠️ Add custom instructions to guide the AI (optional)")
+custom_instruction = st.text_input("What would you like the message to include?", placeholder="e.g. Mention we are macro research providers")
 
 tone_instructions = {
     "Friendly": "Write in a warm, conversational tone.",
@@ -181,7 +182,9 @@ tone_instructions = {
 }
 
 if st.button("✨ Generate AI Message"):
-    preview_prompt = f"You're writing a LinkedIn connection request to {test_first_name}, who is a {test_position} at {test_company}. {tone_instructions[tone]} {custom_instruction} Keep it under 250 characters."
+    preview_prompt = f"You're writing a LinkedIn connection request to {test_first_name}, who is a {test_position} at {test_company}. {tone_instructions[tone]} Keep it under 250 characters."
+if custom_instruction:
+    preview_prompt += f" {custom_instruction}"
     )
     try:
         response = openai.ChatCompletion.create(
