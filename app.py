@@ -192,7 +192,7 @@ if st.button("✨ Generate AI Message"):
         st.success("Here's your AI-generated message:")
         st.info(preview_message)
     except Exception as e:
-        st.error("Failed to generate message. Please try again later.")
+        st.error(f"Failed to generate message: {e}")
 st.markdown("Insert here the SalesFlow message you would like to send to each lead in the campaign:")
 use_ai = st.checkbox("✨ Use AI to generate personalized messages", value=True)
 default_template = "Hi {first_name}, I came across your profile as {position} at {company} – I'd love to connect!"
