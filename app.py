@@ -12,8 +12,36 @@ HUNTER_API_KEY = "f68566d43791af9b30911bc0fe8a65a89908d4fe"
 PUBLIC_DOMAINS = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com"]
 openai.api_key = "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"
 
-JOB_KEYWORDS = [
-    # ... trimmed for brevity
+JOB_KEYWORDS = ["Chief Executive Officer", "CEO", "Chief Financial Officer", "CFO", "Chief Operating Officer", "COO",
+    "Chief Investment Officer", "CIO", "Chief Risk Officer", "CRO", "Chief Compliance Officer", "CCO",
+    "Chief Accounting Officer", "CAO", "Head of Treasury", "Treasury Director", "Treasury Manager",
+    "Treasury Analyst", "Cash Manager", "Liquidity Manager", "Asset Liability Management Manager", "ALM Manager",
+    "Head of Finance", "Finance Director", "Financial Controller", "FC", "Accounting Manager",
+    "Financial Reporting Manager", "Financial Analyst", "FA", "Management Accountant", "Regulatory Reporting Analyst",
+    "Financial Planning and Analysis Manager", "FP&A Manager", "Portfolio Manager", "PM", "Investment Director",
+    "Fund Manager", "Buy-Side Analyst", "Sell-Side Analyst", "Investment Analyst", "Wealth Manager",
+    "Private Banker", "Risk Manager", "Credit Risk Analyst", "Operational Risk Officer", "Market Risk Manager",
+    "Compliance Officer", "Regulatory Affairs Manager", "Head of Strategy", "Strategy Director",
+    "Corporate Development Manager", "Mergers and Acquisitions Analyst", "M&A Analyst", "M&A Manager",
+    "Business Development Director", "BDD", "Relationship Manager", "RM", "Corporate Banker", "SME Banker",
+    "Credit Analyst", "Loan Officer", "Branch Manager", "Head of Trading", "Trader", "FX Trader", "Equity Trader",
+    "Fixed Income Trader", "Sales and Trading Analyst", "Market Analyst", "Internal Auditor", "Financial Crime Officer",
+    "IT Risk Manager", "Data Analyst", "Financial Technology Manager", "Chief Actuary", "Actuary", "Underwriter",
+    "Risk Pricing Analyst", "Claims Manager", "Claims Adjuster", "Operations Manager", "Policy Administration Officer",
+    "Insurance Product Manager", "Broker Relations Manager", "Insurance Sales Manager", "Business Development Executive",
+    "Reinsurance Analyst", "Reinsurance Manager", "Regulatory Compliance Officer", "Head of Finance Transformation",
+    "Head of Digital Banking", "Fintech Manager", "ESG Finance Lead", "Financial Risk and Control Manager",
+    "Data Governance Manager", "Procurement and Vendor Risk Manager", "Vice President of Finance", "VP Finance",
+    "Director of Finance", "Director of Treasury", "Director of Risk", "Director of Compliance", "Head of Function",
+    "VP of Function", "Director of Function", "Investment Manager", "Investment Assistant", "Head of Portfolio Management",
+    "Head of Fund Management", "Fund Assistant", "Head of Multi-Asset Equity", "Head of Fixed Income", "Chief Strategist",
+    "Strategist (Market/Financial)", "Chief Economist", "Head of Research", "Economist", "Chief Analyst",
+    "Analyst (Fund or Other)", "Head of Asset Management", "Asset Manager", "Head of Wealth Management",
+    "Wealth Adviser", "Chief Dealer", "Head of Money Markets", "Head of Capital Markets", "Chief Stockbroker",
+    "Head of Private Banking", "Head of Client Advisory", "Head of Client Assets", "Client Portfolio Manager",
+    "Head of HNWI", "Head of FX", "Head of Cash Management", "Head of Pensions", "Chief Investment Strategist",
+    "Executive Director Investment Risk", "Chief Of Investment Execution", "Head Of M&A",
+    "Liquidity Management & Financing", "Treasury", "Portfolio", "Asset", "Multi-asset", "Multi Asset"
 ]
 
 # === FUNCTIONS ===
@@ -125,6 +153,7 @@ SCORE_THRESHOLD = st.slider("Minimum confidence score", min_value=0, max_value=1
 # --- Salesflow Message UI ---
 st.markdown("### ✍️ Customize your Salesflow message")
 st.markdown("Insert here the SalesFlow message you would like to send to each lead in the campaign:")
+use_ai = st.checkbox("✨ Use AI to generate personalized messages", value=True)
 default_template = "Hi {first_name}, I came across your profile as {position} at {company} – I'd love to connect!"
 user_template = st.text_area("Message Template (you can use {first_name}, {position}, {company})", value=default_template)
 
@@ -168,7 +197,12 @@ if st.button("🚀 Run Lead Qualification") and domains:
             company = lead["Company"]
             position = lead["Position"]
 
-            message = generate_ai_message(first_name, position, company)
+            message = generate_ai_message(first_name, position, company) if use_ai else user_template.format(
+                first_name=first_name,
+                last_name=last_name,
+                company=company,
+                position=position
+            )
 
             if first_example is None:
                 first_example = f"**{first_name}** ({position} at {company}):\n\n> {message}"
@@ -206,6 +240,7 @@ if st.button("🚀 Run Lead Qualification") and domains:
         st.download_button("⬇️ Download All as ZIP", data=zip_buffer.getvalue(), file_name="lead_outputs.zip")
     else:
         st.warning("No qualified leads found. Try a different domain or file.")
+
 
 
 
