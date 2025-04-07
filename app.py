@@ -46,10 +46,17 @@ def is_public_email(email):
     return domain.lower() in PUBLIC_DOMAINS
 
 def job_matches(position):
-    if position is None:
+    if not position:
         return False
-    position = position.strip().lower()
-    return any(keyword.lower() in position for keyword in JOB_KEYWORDS)
+
+    position_words = set(position.lower().split())
+
+    for keyword in JOB_KEYWORDS:
+        keyword_words = set(keyword.lower().split())
+        # Controlla se tutte le parole della keyword sono presenti nella posizione
+        if keyword_words.issubset(position_words):
+            return True
+    return False
 
 def get_leads_from_hunter(domain):
     url = f"https://api.hunter.io/v2/domain-search?domain={domain}&api_key={HUNTER_API_KEY}&limit=100&emails_type=personal"
@@ -123,7 +130,7 @@ st.markdown("""
 </h2>
 <div style='background-color:#f0f4ff;padding:20px 25px;border-left:6px solid #003366;border-radius:6px;margin:20px 0 30px 0;'>
   <p style='font-size:16px;line-height:1.5;color:#333333;font-family:"Times New Roman",serif;font-weight:bold;'>
-    This application was developed by Federico Carota as part of his graduation thesis project, with the objective of supporting lead qualification processes at <b>ECR Research</b>.
+    This application was developed by Federico Carota as part of his graduation thesis project at HU of Applied Sciences, with the objective of supporting lead qualification processes at <b>ECR Research</b>.
     <br><br>
     Combining verified email scoring, job title matching, and LinkedIn integration, the tool automates the identification of key financial decision-makers using smart filtering logic.
     <br><br>
