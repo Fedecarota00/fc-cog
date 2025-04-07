@@ -49,14 +49,17 @@ def job_matches(position):
     if not position:
         return False
 
-    position_lower = position.lower()
+    position_words = set(position.lower().split())
+
     for keyword in JOB_KEYWORDS:
-        if keyword.lower() in position_lower:
+        keyword_words = set(keyword.lower().split())
+        # Controlla se tutte le parole della keyword sono presenti nella posizione
+        if keyword_words.issubset(position_words):
             return True
     return False
 
 def get_leads_from_hunter(domain):
-    url = f"https://api.hunter.io/v2/domain-search?domain={domain}&api_key={HUNTER_API_KEY}&limit=100&emails_type=all"
+    url = f"https://api.hunter.io/v2/domain-search?domain={domain}&api_key={HUNTER_API_KEY}&limit=100&emails_type=personal"
     response = requests.get(url)
     if response.status_code != 200:
         return [], f"Error fetching domain {domain}: {response.status_code}"
@@ -75,14 +78,8 @@ def filter_leads(leads):
         score = lead.get("confidence", 0)
         linkedin = lead.get("linkedin") or lead.get("linkedin_url")
         company = lead.get("company", "N/A")
-
-        # Debug line to check unqualified positions
-        if position and not job_matches(position):
-            print(f"Filtered out (no match): {position}")
-
         if not email or is_public_email(email) or score < SCORE_THRESHOLD:
             continue
-
         if job_matches(position):
             qualified.append({
                 "Email": email,
@@ -305,5 +302,3 @@ if st.button("🚀 Run Lead Qualification") and domains:
 
     else:
         st.warning("No qualified leads found. Try a different domain or file.")
-
-
