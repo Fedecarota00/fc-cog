@@ -10,7 +10,7 @@ import openai
 # === CONFIGURATION ===
 HUNTER_API_KEY = "f68566d43791af9b30911bc0fe8a65a89908d4fe"
 PUBLIC_DOMAINS = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com"]
-openai.api_key = openai.api_key = st.secrets["OPENAI_API_KEY"]
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 JOB_KEYWORDS = ["Chief Executive Officer", "CEO", "Chief Financial Officer", "CFO", "Chief Operating Officer", "COO",
     "Chief Investment Officer", "CIO", "Chief Risk Officer", "CRO", "Chief Compliance Officer", "CCO",
@@ -132,7 +132,7 @@ def generate_ai_message(first_name, position, company):
     )
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4-turbo",
             messages=[{"role": "system", "content": "You are a LinkedIn outreach assistant."},
                       {"role": "user", "content": prompt}],
             temperature=0.9,
@@ -170,6 +170,9 @@ test_company = st.text_input("Company", value="ING Bank")
 
 tone = st.radio("Select message tone:", ["Friendly", "Formal", "Data-driven", "Short & Punchy"], horizontal=True)
 
+# Additional customization instruction
+custom_instruction = st.text_input("🛠️ Additional custom instructions to AI (optional):", placeholder="e.g. Mention that we are research providers")
+
 tone_instructions = {
     "Friendly": "Write in a warm, conversational tone.",
     "Formal": "Use a professional and respectful tone.",
@@ -178,8 +181,8 @@ tone_instructions = {
 }
 
 if st.button("✨ Generate AI Message"):
-    preview_prompt = f"You're writing a LinkedIn connection request to {test_first_name}, who is a {test_position} at {test_company}. {tone_instructions[tone]} Keep it under 250 characters."
-    
+    preview_prompt = f"You're writing a LinkedIn connection request to {test_first_name}, who is a {test_position} at {test_company}. {tone_instructions[tone]} {custom_instruction} Keep it under 250 characters."
+    )
     try:
         response = openai.ChatCompletion.create(
             model="gpt-4-turbo",
@@ -192,7 +195,7 @@ if st.button("✨ Generate AI Message"):
         st.success("Here's your AI-generated message:")
         st.info(preview_message)
     except Exception as e:
-        st.error(f"Failed to generate message: {e}")
+        st.error("Failed to generate message. Please try again later.")
 st.markdown("Insert here the SalesFlow message you would like to send to each lead in the campaign:")
 use_ai = st.checkbox("✨ Use AI to generate personalized messages", value=True)
 default_template = "Hi {first_name}, I came across your profile as {position} at {company} – I'd love to connect!"
@@ -281,6 +284,7 @@ if st.button("🚀 Run Lead Qualification") and domains:
         st.download_button("⬇️ Download All as ZIP", data=zip_buffer.getvalue(), file_name="lead_outputs.zip")
     else:
         st.warning("No qualified leads found. Try a different domain or file.")
+
 
 
 
