@@ -10,7 +10,7 @@ import openai
 # === CONFIGURATION ===
 HUNTER_API_KEY = "f68566d43791af9b30911bc0fe8a65a89908d4fe"
 PUBLIC_DOMAINS = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com"]
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+openai.api_key = "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"
 
 JOB_KEYWORDS = ["Chief Executive Officer", "CEO", "Chief Financial Officer", "CFO", "Chief Operating Officer", "COO",
     "Chief Investment Officer", "CIO", "Chief Risk Officer", "CRO", "Chief Compliance Officer", "CCO",
