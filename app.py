@@ -12,8 +12,36 @@ HUNTER_API_KEY = "f68566d43791af9b30911bc0fe8a65a89908d4fe"
 PUBLIC_DOMAINS = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com"]
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 
-JOB_KEYWORDS = [
-    # ... trimmed for brevity
+JOB_KEYWORDS = ["Chief Executive Officer", "CEO", "Chief Financial Officer", "CFO", "Chief Operating Officer", "COO",
+    "Chief Investment Officer", "CIO", "Chief Risk Officer", "CRO", "Chief Compliance Officer", "CCO",
+    "Chief Accounting Officer", "CAO", "Head of Treasury", "Treasury Director", "Treasury Manager",
+    "Treasury Analyst", "Cash Manager", "Liquidity Manager", "Asset Liability Management Manager", "ALM Manager",
+    "Head of Finance", "Finance Director", "Financial Controller", "FC", "Accounting Manager",
+    "Financial Reporting Manager", "Financial Analyst", "FA", "Management Accountant", "Regulatory Reporting Analyst",
+    "Financial Planning and Analysis Manager", "FP&A Manager", "Portfolio Manager", "PM", "Investment Director",
+    "Fund Manager", "Buy-Side Analyst", "Sell-Side Analyst", "Investment Analyst", "Wealth Manager",
+    "Private Banker", "Risk Manager", "Credit Risk Analyst", "Operational Risk Officer", "Market Risk Manager",
+    "Compliance Officer", "Regulatory Affairs Manager", "Head of Strategy", "Strategy Director",
+    "Corporate Development Manager", "Mergers and Acquisitions Analyst", "M&A Analyst", "M&A Manager",
+    "Business Development Director", "BDD", "Relationship Manager", "RM", "Corporate Banker", "SME Banker",
+    "Credit Analyst", "Loan Officer", "Branch Manager", "Head of Trading", "Trader", "FX Trader", "Equity Trader",
+    "Fixed Income Trader", "Sales and Trading Analyst", "Market Analyst", "Internal Auditor", "Financial Crime Officer",
+    "IT Risk Manager", "Data Analyst", "Financial Technology Manager", "Chief Actuary", "Actuary", "Underwriter",
+    "Risk Pricing Analyst", "Claims Manager", "Claims Adjuster", "Operations Manager", "Policy Administration Officer",
+    "Insurance Product Manager", "Broker Relations Manager", "Insurance Sales Manager", "Business Development Executive",
+    "Reinsurance Analyst", "Reinsurance Manager", "Regulatory Compliance Officer", "Head of Finance Transformation",
+    "Head of Digital Banking", "Fintech Manager", "ESG Finance Lead", "Financial Risk and Control Manager",
+    "Data Governance Manager", "Procurement and Vendor Risk Manager", "Vice President of Finance", "VP Finance",
+    "Director of Finance", "Director of Treasury", "Director of Risk", "Director of Compliance", "Head of Function",
+    "VP of Function", "Director of Function", "Investment Manager", "Investment Assistant", "Head of Portfolio Management",
+    "Head of Fund Management", "Fund Assistant", "Head of Multi-Asset Equity", "Head of Fixed Income", "Chief Strategist",
+    "Strategist (Market/Financial)", "Chief Economist", "Head of Research", "Economist", "Chief Analyst",
+    "Analyst (Fund or Other)", "Head of Asset Management", "Asset Manager", "Head of Wealth Management",
+    "Wealth Adviser", "Chief Dealer", "Head of Money Markets", "Head of Capital Markets", "Chief Stockbroker",
+    "Head of Private Banking", "Head of Client Advisory", "Head of Client Assets", "Client Portfolio Manager",
+    "Head of HNWI", "Head of FX", "Head of Cash Management", "Head of Pensions", "Chief Investment Strategist",
+    "Executive Director Investment Risk", "Chief Of Investment Execution", "Head Of M&A",
+    "Liquidity Management & Financing", "Treasury", "Portfolio", "Asset", "Multi-asset", "Multi Asset"
 ]
 
 # === FUNCTIONS ===
@@ -29,6 +57,11 @@ def job_matches(position):
     for keyword in JOB_KEYWORDS:
         keyword_words = set(keyword.lower().split())
         if keyword_words.issubset(position_words):
+            return True
+    return False
+    position = position.lower()
+    for keyword in JOB_KEYWORDS:
+        if keyword.lower() in position:
             return True
     return False
 
@@ -124,6 +157,63 @@ st.markdown("""
 
 SCORE_THRESHOLD = st.slider("Minimum confidence score", min_value=0, max_value=100, value=50)
 
+# --- Salesflow Message UI ---
+st.markdown("### ✍️ Customize your Salesflow message")
+
+# === Live AI Preview Box ===
+st.markdown("### 🤖 Try AI Message Generation")
+
+st.markdown("Type in a sample name, title and company to preview an AI-generated message below:")
+test_first_name = st.text_input("First Name", value="Alex")
+test_position = st.text_input("Job Title", value="Chief Financial Officer")
+test_company = st.text_input("Company", value="ING Bank")
+
+tone = st.radio("Select message tone:", ["Friendly", "Formal", "Data-driven", "Short & Punchy"], horizontal=True)
+
+# Additional customization instruction
+st.markdown("#### 🛠️ Add custom instructions to guide the AI (optional)")
+custom_instruction = st.text_input("What would you like the message to include?", placeholder="e.g. Mention we are macro research providers")
+
+tone_instructions = {
+    "Friendly": "Write in a warm, conversational tone.",
+    "Formal": "Use a professional and respectful tone.",
+    "Data-driven": "Use language that emphasizes insights and value.",
+    "Short & Punchy": "Be concise, bold, and impactful."
+}
+
+if st.button("✨ Generate AI Message"):
+    preview_prompt = (
+        f"You're writing a LinkedIn connection request to {test_first_name}, "
+        f"who is a {test_position} at {test_company}. "
+        f"{tone_instructions[tone]} "
+    )
+
+    if custom_instruction:
+        preview_prompt += f"{custom_instruction}. "
+
+    preview_prompt += "Keep it under 250 characters."
+
+    # Debug: show the full prompt to be sent
+    st.write("🔍 Prompt being sent to OpenAI:")
+    st.code(preview_prompt)
+
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-4-turbo",
+            messages=[
+                {"role": "system", "content": "You are a LinkedIn outreach assistant."},
+                {"role": "user", "content": preview_prompt}
+            ],
+            temperature=0.9,
+            max_tokens=100
+        )
+        preview_message = response['choices'][0]['message']['content'].strip()
+        st.success("Here's your AI-generated message:")
+        st.info(preview_message)
+        with st.expander("🔍 Show full AI prompt"):
+            st.code(preview_prompt, language="text")
+    except Exception as e:
+        st.error(f"Failed to generate message: {e}")
 st.markdown("Insert here the SalesFlow message you would like to send to each lead in the campaign:")
 use_ai = st.checkbox("✨ Use AI to generate personalized messages", value=True)
 default_template = "Hi {first_name}, I came across your profile as {position} at {company} – I'd love to connect!"
@@ -212,7 +302,6 @@ if st.button("🚀 Run Lead Qualification") and domains:
         st.download_button("⬇️ Download All as ZIP", data=zip_buffer.getvalue(), file_name="lead_outputs.zip")
     else:
         st.warning("No qualified leads found. Try a different domain or file.")
-
 
 
 
