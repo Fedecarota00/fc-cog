@@ -9,7 +9,7 @@ import os
 
 # === CONFIGURATION ===
 HUNTER_API_KEY = "f68566d43791af9b30911bc0fe8a65a89908d4fe"
-SCORE_THRESHOLD = 50
+SCORE_THRESHOLD = 30  # 🔧 Abbassata per test
 PUBLIC_DOMAINS = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com"]
 
 JOB_KEYWORDS = ["Chief Executive Officer", "CEO", "Chief Financial Officer", "CFO", "Chief Operating Officer", "COO",
@@ -48,13 +48,11 @@ def is_public_email(email):
 def job_matches(position):
     if not position:
         return False
-
     position_words = set(position.lower().split())
-
     for keyword in JOB_KEYWORDS:
         keyword_words = set(keyword.lower().split())
-        # Controlla se tutte le parole della keyword sono presenti nella posizione
-        if keyword_words.issubset(position_words):
+        match_ratio = len(keyword_words.intersection(position_words)) / len(keyword_words)
+        if match_ratio >= 0.8:
             return True
     return False
 
@@ -78,6 +76,10 @@ def filter_leads(leads):
         score = lead.get("confidence", 0)
         linkedin = lead.get("linkedin") or lead.get("linkedin_url")
         company = lead.get("company", "N/A")
+
+        # DEBUG
+        st.write("👀 Checking lead:", lead)
+
         if not email or is_public_email(email) or score < SCORE_THRESHOLD:
             continue
         if job_matches(position):
@@ -91,6 +93,7 @@ def filter_leads(leads):
                 "Company Domain": lead.get("domain")
             })
     return qualified
+
 
 def split_full_name(full_name):
     parts = full_name.strip().split()
