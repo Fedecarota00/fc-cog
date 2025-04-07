@@ -185,7 +185,7 @@ if st.button("✨ Generate AI Message"):
     preview_prompt = f"You're writing a LinkedIn connection request to {test_first_name}, who is a {test_position} at {test_company}. {tone_instructions[tone]} Keep it under 250 characters."
 if custom_instruction:
     preview_prompt += f" {custom_instruction}"
-    )
+    
     try:
         response = openai.ChatCompletion.create(
             model="gpt-4-turbo",
