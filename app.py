@@ -215,6 +215,8 @@ preview_prompt += "Keep it under 250 characters."
         preview_message = response['choices'][0]['message']['content'].strip()
         st.success("Here's your AI-generated message:")
         st.info(preview_message)
+        with st.expander("🔍 Show full AI prompt"):
+            st.code(preview_prompt, language="text")
     except Exception as e:
         st.error("Failed to generate message. Please try again later.")
 st.markdown("Insert here the SalesFlow message you would like to send to each lead in the campaign:")
@@ -305,6 +307,7 @@ if st.button("🚀 Run Lead Qualification") and domains:
         st.download_button("⬇️ Download All as ZIP", data=zip_buffer.getvalue(), file_name="lead_outputs.zip")
     else:
         st.warning("No qualified leads found. Try a different domain or file.")
+
 
 
 
