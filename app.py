@@ -132,7 +132,7 @@ def generate_ai_message(first_name, position, company):
     )
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4-turbo",
+            model="gpt-3.5-turbo",
             messages=[{"role": "system", "content": "You are a LinkedIn outreach assistant."},
                       {"role": "user", "content": prompt}],
             temperature=0.9,
