@@ -9,7 +9,7 @@ import os
 
 # === CONFIGURATION ===
 HUNTER_API_KEY = "f68566d43791af9b30911bc0fe8a65a89908d4fe"
-SCORE_THRESHOLD = 50
+SCORE_THRESHOLD = 0
 PUBLIC_DOMAINS = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com"]
 
 JOB_KEYWORDS = ["Chief Executive Officer", "CEO", "Chief Financial Officer", "CFO", "Chief Operating Officer", "COO",
