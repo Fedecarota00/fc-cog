@@ -52,6 +52,23 @@ def is_public_email(email):
 def job_matches(position):
     if not position:
         return False
+
+    prompt = (
+        f"Is the job title '{position}' a senior decision-maker in finance or treasury roles? "
+        f"Answer only with 'yes' or 'no'."
+    )
+
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0,
+            max_tokens=3,
+        )
+        result = response["choices"][0]["message"]["content"].strip().lower()
+        return result == "yes"
+    except Exception as e:
+        return False  # fallback to safe behavior
     position = position.lower()
     for keyword in JOB_KEYWORDS:
         if keyword.lower() in position:
