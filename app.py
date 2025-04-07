@@ -178,11 +178,7 @@ tone_instructions = {
 }
 
 if st.button("✨ Generate AI Message"):
-    preview_prompt = (
-    f"You're writing a LinkedIn connection request to {test_first_name}, who is a {test_position} at {test_company}.
-"
-    + f"{tone_instructions[tone]} Keep it under 250 characters."
-)
+    preview_prompt = f"You're writing a LinkedIn connection request to {test_first_name}, who is a {test_position} at {test_company}. {tone_instructions[tone]} Keep it under 250 characters."
     )
     try:
         response = openai.ChatCompletion.create(
@@ -285,6 +281,7 @@ if st.button("🚀 Run Lead Qualification") and domains:
         st.download_button("⬇️ Download All as ZIP", data=zip_buffer.getvalue(), file_name="lead_outputs.zip")
     else:
         st.warning("No qualified leads found. Try a different domain or file.")
+
 
 
 
