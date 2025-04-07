@@ -1,3 +1,127 @@
+import streamlit as st
+import pandas as pd
+import requests
+import time
+from io import BytesIO
+import zipfile
+import os
+import openai
+
+# === CONFIGURATION ===
+HUNTER_API_KEY = "f68566d43791af9b30911bc0fe8a65a89908d4fe"
+PUBLIC_DOMAINS = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com"]
+openai.api_key = st.secrets["OPENAI_API_KEY"]
+
+JOB_KEYWORDS = [
+    # ... trimmed for brevity
+]
+
+# === FUNCTIONS ===
+def is_public_email(email):
+    domain = email.split('@')[-1]
+    return domain.lower() in PUBLIC_DOMAINS
+
+def job_matches(position):
+    if not position:
+        return False
+    position = position.lower()
+    position_words = set(position.split())
+    for keyword in JOB_KEYWORDS:
+        keyword_words = set(keyword.lower().split())
+        if keyword_words.issubset(position_words):
+            return True
+    return False
+
+def get_leads_from_hunter(domain):
+    all_emails = []
+    offset = 0
+    limit = 100
+
+    while True:
+        url = f"https://api.hunter.io/v2/domain-search?domain={domain}&api_key={HUNTER_API_KEY}&limit={limit}&offset={offset}&emails_type=personal"
+        response = requests.get(url)
+        if response.status_code != 200:
+            return [], f"Error fetching domain {domain}: {response.status_code}"
+
+        data = response.json()
+        emails = data.get("data", {}).get("emails", [])
+        company = data.get("data", {}).get("organization")
+
+        for email in emails:
+            email["company"] = company
+
+        all_emails.extend(emails)
+
+        if len(emails) < limit:
+            break
+
+        offset += limit
+        time.sleep(1.2)
+
+    return all_emails, None
+
+def filter_leads(leads, score_threshold):
+    qualified = []
+    for lead in leads:
+        email = lead.get("value")
+        position = lead.get("position")
+        score = lead.get("confidence", 0)
+        linkedin = lead.get("linkedin") or lead.get("linkedin_url")
+        company = lead.get("company", "N/A")
+        if not email or is_public_email(email) or score < score_threshold:
+            continue
+        if job_matches(position):
+            qualified.append({
+                "Email": email,
+                "Full Name": (lead.get("first_name") or "") + " " + (lead.get("last_name") or ""),
+                "Position": position,
+                "Confidence Score": score,
+                "LinkedIn": linkedin,
+                "Company": company,
+                "Company Domain": lead.get("domain")
+            })
+    return qualified
+
+def split_full_name(full_name):
+    parts = full_name.strip().split()
+    if len(parts) == 0:
+        return "", ""
+    elif len(parts) == 1:
+        return parts[0], ""
+    else:
+        return parts[0], " ".join(parts[1:])
+
+def generate_ai_message(first_name, position, company):
+    prompt = (
+        f"You're creating a short, professional LinkedIn connection message for a person named {first_name}, "
+        f"who is a {position} at {company}. The sender wants to offer macroeconomic research insights.\n"
+        f"Keep it friendly, specific to the role, and under 250 characters. Avoid generic phrases."
+    )
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-4-turbo",
+            messages=[{"role": "system", "content": "You are a LinkedIn outreach assistant."},
+                      {"role": "user", "content": prompt}],
+            temperature=0.9,
+            max_tokens=100
+        )
+        return response['choices'][0]['message']['content'].strip()
+    except Exception as e:
+        return f"Hi {first_name}, I’d love to connect regarding insights relevant to {position} at {company}."
+
+# === STREAMLIT UI ===
+st.set_page_config(page_title="Lead Qualifier", layout="centered")
+
+logo_path = "ecr_logo_resized.png"
+if os.path.exists(logo_path):
+    st.image(logo_path, width=120)
+
+st.markdown("""
+<h2 style='text-align: center; color: #ffffff; background-color: #001F54; padding: 15px; border-radius: 10px;'>
+    🔍 ECR Lead Qualification App
+</h2>
+""", unsafe_allow_html=True)
+
 SCORE_THRESHOLD = st.slider("Minimum confidence score", min_value=0, max_value=100, value=50)
 
 st.markdown("Insert here the SalesFlow message you would like to send to each lead in the campaign:")
