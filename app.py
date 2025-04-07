@@ -66,9 +66,6 @@ def get_leads_from_hunter(domain):
     data = response.json()
     emails = data.get("data", {}).get("emails", [])
     company = data.get("data", {}).get("organization")
-    
-    # 🔇 Removed debug st.text()
-
     for email in emails:
         email["company"] = company
     return emails, None
@@ -260,8 +257,7 @@ if st.button("🚀 Run Lead Qualification") and domains:
     all_qualified = []
     with st.spinner("Working through the domains and filtering qualified leads..."):
         for idx, domain in enumerate(domains):
-            # print instead of st.write to keep UI clean
-            print(f"[{idx+1}/{len(domains)}] Processing domain: {domain}")
+            st.write(f"[{idx+1}/{len(domains)}] Processing domain: {domain}")
             leads, error = get_leads_from_hunter(domain)
             if error:
                 st.error(error)
@@ -270,7 +266,6 @@ if st.button("🚀 Run Lead Qualification") and domains:
             st.success(f"✅ Qualified leads from {domain}: {len(qualified)}")
             all_qualified.extend(qualified)
             time.sleep(1.5)
-
 
     if all_qualified:
         df_qualified = pd.DataFrame(all_qualified)
@@ -307,4 +302,3 @@ if st.button("🚀 Run Lead Qualification") and domains:
 
     else:
         st.warning("No qualified leads found. Try a different domain or file.")
-
