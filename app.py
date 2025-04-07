@@ -199,7 +199,7 @@ if st.button("✨ Generate AI Message"):
 
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4-turbo",
+            model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are a LinkedIn outreach assistant."},
                 {"role": "user", "content": preview_prompt}
