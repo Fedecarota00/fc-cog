@@ -162,7 +162,7 @@ if st.button(TEXT["generate_message"]):
     st.info(ai_msg)
 
 # === RUN QUALIFICATION ===
-st.markdown("### 🚀 Step 4 – Run Lead Qualification")
+st.markdown("### 🚀 Step 3 – Run Lead Qualification")
 if st.button(TEXT["run_button"]) and domains:
     all_qualified = []
     with st.spinner(TEXT['processing']):
@@ -185,12 +185,7 @@ if st.button(TEXT["run_button"]) and domains:
             first_name, last_name = split_full_name(lead["Full Name"])
             company = lead["Company"]
             position = lead["Position"]
-            message = generate_ai_message(first_name, position, company) if use_ai else user_template.format(
-                first_name=first_name,
-                last_name=last_name,
-                company=company,
-                position=position
-            )
+            message = generate_ai_message(first_name, position, company)
             if first_example is None:
                 first_example = f"**{first_name}** ({position} at {company}):\n\n> {message}"
             records.append({
@@ -216,15 +211,13 @@ if st.button(TEXT["run_button"]) and domains:
             zipf.writestr("qualified_leads.xlsx", buffer_xlsx.getvalue())
             zipf.writestr("salesflow_leads.csv", buffer_csv.getvalue())
 
-        st.markdown("### 📥 Step 5 – Export Results")
+        st.markdown("### 📥 Step 4 – Export Results")
         st.dataframe(df_qualified, use_container_width=True)
         st.download_button(TEXT["download_xlsx"], data=buffer_xlsx.getvalue(), file_name="qualified_leads.xlsx")
         st.download_button(TEXT["download_csv"], data=buffer_csv.getvalue(), file_name="salesflow_leads.csv")
         st.download_button(TEXT["download_zip"], data=zip_buffer.getvalue(), file_name="lead_outputs.zip")
     else:
         st.warning(TEXT["no_results"])
-
-
 
 
 
