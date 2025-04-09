@@ -163,19 +163,20 @@ if st.button(TEXT["generate_message"]):
     st.success(TEXT["ai_result"])
     st.info(ai_msg)
 
-# === RUN QUALIFICATION ===
+# === EDIT MESSAGE TEMPLATE ===
 st.markdown("### ✏️ Step 3 – Edit Your Message Template")
-        st.markdown("Use placeholders like `{first_name}`, `{position}`, `{company}` to personalize.")
+st.markdown("Use placeholders like `{first_name}`, `{position}`, `{company}` to personalize.")
 
-        first_name = test_first_name
-        position = test_position
-        company = test_company
-        preview_message = st.session_state.ai_template or generate_ai_message(first_name, position, company, tone, custom_instruction)
-        default_template = preview_message.replace(first_name, "{first_name}").replace(position, "{position}").replace(company, "{company}")
-        final_template = st.text_area("What would you like the message to include?", value=default_template)
+first_name = test_first_name
+position = test_position
+company = test_company
 
+preview_message = st.session_state.ai_template or generate_ai_message(first_name, position, company, tone, custom_instruction)
+default_template = preview_message.replace(first_name, "{first_name}").replace(position, "{position}").replace(company, "{company}")
+final_template = st.text_area("What would you like the message to include?", value=default_template)
+
+# === RUN QUALIFICATION ===
 st.markdown("### 🚀 Step 4 – Run Lead Qualification")
-
 if st.button(TEXT["run_button"]) and domains:
     all_qualified = []
     with st.spinner(TEXT['processing']):
@@ -193,58 +194,45 @@ if st.button(TEXT["run_button"]) and domains:
     if all_qualified:
         df_qualified = pd.DataFrame(all_qualified)
         records = []
+        first_example = None
         for lead in all_qualified:
             first_name, last_name = split_full_name(lead["Full Name"])
             company = lead["Company"]
             position = lead["Position"]
+            message = final_template.format(
+                first_name=first_name,
+                position=position,
+                company=company
+            )
+            if first_example is None:
+                first_example = f"**{first_name}** ({position} at {company}):\n\n> {message}"
             records.append({
                 "First Name": first_name,
                 "Last Name": last_name,
                 "LinkedIn URL": lead["LinkedIn"],
                 "Company": company,
                 "Job Title": position,
-                "Personalized Message": ""
+                "Personalized Message": message
             })
-else:
-        records = []
 
-if records:
-    first_name = records[0]['First Name']
-    position = records[0]['Job Title']
-    company = records[0]['Company']
+        df_salesflow = pd.DataFrame(records)
 
-    st.markdown("### ✏️ Step 4 – Edit Your Message Template")
-    st.markdown("Use placeholders like `{first_name}`, `{position}`, `{company}` to personalize.")
+        buffer_xlsx = BytesIO()
+        df_qualified.to_excel(buffer_xlsx, index=False)
+        buffer_csv = BytesIO()
+        df_salesflow.to_csv(buffer_csv, index=False, encoding="utf-8-sig")
+        zip_buffer = BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w") as zipf:
+            zipf.writestr("qualified_leads.xlsx", buffer_xlsx.getvalue())
+            zipf.writestr("salesflow_leads.csv", buffer_csv.getvalue())
 
-    preview_message = st.session_state.ai_template or generate_ai_message(first_name, position, company, tone, custom_instruction)
-    default_template = preview_message.replace(first_name, "{first_name}").replace(position, "{position}").replace(company, "{company}")
-    final_template = st.text_area("What would you like the message to include?", value=default_template)
-
-    for record in records:
-        record["Personalized Message"] = final_template.format(
-            first_name=record["First Name"],
-            position=record["Job Title"],
-            company=record["Company"]
-        )
-
-    df_salesflow = pd.DataFrame(records)
-
-    buffer_xlsx = BytesIO()
-    df_qualified.to_excel(buffer_xlsx, index=False)
-    buffer_csv = BytesIO()
-    df_salesflow.to_csv(buffer_csv, index=False, encoding="utf-8-sig")
-    zip_buffer = BytesIO()
-    with zipfile.ZipFile(zip_buffer, "w") as zipf:
-        zipf.writestr("qualified_leads.xlsx", buffer_xlsx.getvalue())
-        zipf.writestr("salesflow_leads.csv", buffer_csv.getvalue())
-
-    st.markdown("### 📥 Step 5 – Export Results")
-    st.dataframe(df_qualified, use_container_width=True)
-    st.download_button(TEXT["download_xlsx"], data=buffer_xlsx.getvalue(), file_name="qualified_leads.xlsx")
-    st.download_button(TEXT["download_csv"], data=buffer_csv.getvalue(), file_name="salesflow_leads.csv")
-    st.download_button(TEXT["download_zip"], data=zip_buffer.getvalue(), file_name="lead_outputs.zip")
-else:
-    st.warning(TEXT["no_results"])
+        st.markdown("### 📥 Step 5 – Export Results")
+        st.dataframe(df_qualified, use_container_width=True)
+        st.download_button(TEXT["download_xlsx"], data=buffer_xlsx.getvalue(), file_name="qualified_leads.xlsx")
+        st.download_button(TEXT["download_csv"], data=buffer_csv.getvalue(), file_name="salesflow_leads.csv")
+        st.download_button(TEXT["download_zip"], data=zip_buffer.getvalue(), file_name="lead_outputs.zip")
+    else:
+        st.warning(TEXT["no_results"])
 
 
 
