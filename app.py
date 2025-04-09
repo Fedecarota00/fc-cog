@@ -78,13 +78,14 @@ def filter_leads(leads, score_threshold):
         score = lead.get("confidence", 0)
         linkedin = lead.get("linkedin") or lead.get("linkedin_url")
         company = lead.get("company", "N/A")
-        if not email or is_public_email(email) or score < score_threshold:
+        if not email or is_public_email(email):
             continue
         if job_matches(position):
             qualified.append({
                 "Email": email,
                 "Full Name": (lead.get("first_name") or "") + " " + (lead.get("last_name") or ""),
                 "Position": position,
+                "Confidence Score": score,
                 "LinkedIn": linkedin,
                 "Company": company,
                 "Company Domain": lead.get("domain")
@@ -117,7 +118,6 @@ def generate_ai_message(first_name, position, company):
 
 # === PAGE LAYOUT ===
 st.markdown("### 🔢 Step 1 – Upload or Enter Domains")
-SCORE_THRESHOLD = st.slider("Minimum confidence score", min_value=0, max_value=100, value=50)
 option = st.radio(TEXT['input_method'], (TEXT['manual_entry'], TEXT['upload_file']))
 
 domains = []
