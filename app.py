@@ -94,12 +94,24 @@ def split_full_name(full_name):
     parts = full_name.strip().split()
     return (parts[0], " ".join(parts[1:])) if parts else ("", "")
 
-def generate_ai_message(first_name, position, company):
-    prompt = (
-        f"You're creating a short, professional LinkedIn connection message for a person named {first_name}, "
-        f"who is a {position} at {company}. The sender wants to offer macroeconomic research insights.\n"
-        f"Keep it friendly, specific to the role, and under 250 characters. Avoid generic phrases."
+def generate_ai_message(first_name, position, company, tone=None, custom_instruction=None):
+    base_prompt = (
+        f"You're writing a LinkedIn connection request to {first_name}, "
+        f"who is a {position} at {company}."
     )
+
+    tone_instructions = {
+        "Friendly": "Write in a warm, conversational tone.",
+        "Formal": "Use a professional and respectful tone.",
+        "Data-driven": "Use language that emphasizes insights and value.",
+        "Short & Punchy": "Be concise, bold, and impactful."
+    }
+
+    tone_text = tone_instructions.get(tone, "") if tone else ""
+    custom_text = custom_instruction if custom_instruction else ""
+
+    prompt = f"{base_prompt} {tone_text} {custom_text} Keep it under 250 characters."
+
     try:
         response = openai.ChatCompletion.create(
             model="gpt-4",
@@ -154,7 +166,7 @@ if st.button(TEXT["generate_message"]):
         f"who is a {test_position} at {test_company}. "
         f"{tone_instructions[tone]} {custom_instruction if custom_instruction else ''} Keep it under 250 characters."
     )
-    ai_msg = generate_ai_message(test_first_name, test_position, test_company)
+    ai_msg = generate_ai_message(test_first_name, test_position, test_company, tone, custom_instruction)
     st.success(TEXT["ai_result"])
     st.info(ai_msg)
 
