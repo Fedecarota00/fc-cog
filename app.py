@@ -75,7 +75,6 @@ def filter_leads(leads):
     for lead in leads:
         email = lead.get("value")
         position = lead.get("position")
-        score = lead.get("confidence", 0)
         linkedin = lead.get("linkedin") or lead.get("linkedin_url")
         company = lead.get("company", "N/A")
         if not email or is_public_email(email):
@@ -85,7 +84,6 @@ def filter_leads(leads):
                 "Email": email,
                 "Full Name": (lead.get("first_name") or "") + " " + (lead.get("last_name") or ""),
                 "Position": position,
-                "Confidence Score": score,
                 "LinkedIn": linkedin,
                 "Company": company,
                 "Company Domain": lead.get("domain")
