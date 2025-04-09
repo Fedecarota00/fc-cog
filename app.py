@@ -202,16 +202,26 @@ if st.button(TEXT["run_button"]) and domains:
             st.info(first_example)
 
         # Show editable messages
-        st.markdown("### ✏️ Step 4 – Review & Edit Messages")
-        edited_messages = []
-        for i, record in enumerate(records):
-            with st.expander(f"{record['First Name']} – {record['Job Title']} at {record['Company']}"):
-                default_msg = record["Personalized Message"]
-                edited = st.text_area(f"Edit message for {record['First Name']}:", value=default_msg, key=f"msg_{i}")
-                record["Personalized Message"] = edited
-                edited_messages.append(record)
+         first_name = records[0]['First Name']
+        position = records[0]['Job Title']
+        company = records[0]['Company']
+        preview_message = generate_ai_message(first_name, position, company)
 
-        df_salesflow = pd.DataFrame(edited_messages)
+        st.markdown("### ✏️ Step 4 – Edit Your Message Template")
+        st.markdown("Use placeholders like `{first_name}`, `{position}`, `{company}` to personalize.")
+
+        default_template = preview_message.replace(first_name, "{first_name}").replace(position, "{position}").replace(company, "{company}")
+        final_template = st.text_area("Your message template:", value=default_template)
+
+        # Apply to all leads
+        for record in records:
+            record["Personalized Message"] = final_template.format(
+                first_name=record["First Name"],
+                position=record["Job Title"],
+                company=record["Company"]
+            )
+
+        df_salesflow = pd.DataFrame(records)
 
         buffer_xlsx = BytesIO()
         df_qualified.to_excel(buffer_xlsx, index=False)
