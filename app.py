@@ -85,7 +85,6 @@ def filter_leads(leads, score_threshold):
                 "Email": email,
                 "Full Name": (lead.get("first_name") or "") + " " + (lead.get("last_name") or ""),
                 "Position": position,
-                "Confidence Score": score,
                 "LinkedIn": linkedin,
                 "Company": company,
                 "Company Domain": lead.get("domain")
