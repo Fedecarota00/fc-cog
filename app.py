@@ -144,6 +144,9 @@ elif option == TEXT['upload_file']:
         st.success(TEXT['uploaded_success'].format(n=len(domains)))
 
 # === AI MESSAGE GENERATION ===
+if "ai_template" not in st.session_state:
+    st.session_state.ai_template = ""
+
 st.markdown("### 🤖 Step 2 – Preview an AI Message")
 col1, col2 = st.columns(2)
 with col1:
@@ -155,18 +158,8 @@ with col2:
     custom_instruction = st.text_input(TEXT["custom_instruction"], placeholder="e.g. Mention we are macro research providers")
 
 if st.button(TEXT["generate_message"]):
-    tone_instructions = {
-        "Friendly": "Write in a warm, conversational tone.",
-        "Formal": "Use a professional and respectful tone.",
-        "Data-driven": "Use language that emphasizes insights and value.",
-        "Short & Punchy": "Be concise, bold, and impactful."
-    }
-    preview_prompt = (
-        f"You're writing a LinkedIn connection request to {test_first_name}, "
-        f"who is a {test_position} at {test_company}. "
-        f"{tone_instructions[tone]} {custom_instruction if custom_instruction else ''} Keep it under 250 characters."
-    )
     ai_msg = generate_ai_message(test_first_name, test_position, test_company, tone, custom_instruction)
+    st.session_state.ai_template = ai_msg
     st.success(TEXT["ai_result"])
     st.info(ai_msg)
 
@@ -194,7 +187,7 @@ if st.button(TEXT["run_button"]) and domains:
             first_name, last_name = split_full_name(lead["Full Name"])
             company = lead["Company"]
             position = lead["Position"]
-            message = generate_ai_message(first_name, position, company)
+            message = generate_ai_message(first_name, position, company, tone, custom_instruction)
             if first_example is None:
                 first_example = f"**{first_name}** ({position} at {company}):\n\n> {message}"
             records.append({
@@ -210,19 +203,35 @@ if st.button(TEXT["run_button"]) and domains:
             st.markdown(TEXT["example_message"])
             st.info(first_example)
 
-        # Show editable messages
         first_name = records[0]['First Name']
         position = records[0]['Job Title']
         company = records[0]['Company']
-        preview_message = generate_ai_message(first_name, position, company)
 
         st.markdown("### ✏️ Step 4 – Edit Your Message Template")
         st.markdown("Use placeholders like `{first_name}`, `{position}`, `{company}` to personalize.")
 
+        preview_message = st.session_state.ai_template or generate_ai_message(first_name, position, company, tone, custom_instruction)
         default_template = preview_message.replace(first_name, "{first_name}").replace(position, "{position}").replace(company, "{company}")
-        final_template = st.text_area("Your message template:", value=default_template)
+        final_template = st.text_area("What would you like the message to include?", value=default_template)
 
-        # Apply to all leads
+        for record in records:
+            record["Personalized Message"] = final_template.format(
+                first_name=record["First Name"],
+                position=record["Job Title"],
+                company=record["Company"]
+            )
+
+        first_name = records[0]['First Name']
+        position = records[0]['Job Title']
+        company = records[0]['Company']
+
+        st.markdown("### ✏️ Step 4 – Edit Your Message Template")
+        st.markdown("Use placeholders like `{first_name}`, `{position}`, `{company}` to personalize.")
+
+        preview_message = st.session_state.ai_template or generate_ai_message(first_name, position, company, tone, custom_instruction)
+        default_template = preview_message.replace(first_name, "{first_name}").replace(position, "{position}").replace(company, "{company}")
+        final_template = st.text_area("What would you like the message to include?", value=default_template)
+
         for record in records:
             record["Personalized Message"] = final_template.format(
                 first_name=record["First Name"],
