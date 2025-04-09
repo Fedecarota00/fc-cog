@@ -161,13 +161,6 @@ if st.button(TEXT["generate_message"]):
     st.success(TEXT["ai_result"])
     st.info(ai_msg)
 
-# === SALESFLOW ===
-st.markdown("### 💬 Step 3 – Customize Your Campaign Message")
-st.markdown(TEXT["salesflow_message_label"])
-use_ai = st.checkbox(TEXT["use_ai"], value=True)
-default_template = "Hi {first_name}, I came across your profile as {position} at {company} – I'd love to connect!"
-user_template = st.text_area(TEXT["template_label"], value=default_template)
-
 # === RUN QUALIFICATION ===
 st.markdown("### 🚀 Step 4 – Run Lead Qualification")
 if st.button(TEXT["run_button"]) and domains:
