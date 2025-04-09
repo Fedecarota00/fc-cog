@@ -202,7 +202,7 @@ if st.button(TEXT["run_button"]) and domains:
             st.info(first_example)
 
         # Show editable messages
-         first_name = records[0]['First Name']
+        first_name = records[0]['First Name']
         position = records[0]['Job Title']
         company = records[0]['Company']
         preview_message = generate_ai_message(first_name, position, company)
