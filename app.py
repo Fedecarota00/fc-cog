@@ -197,10 +197,21 @@ if st.button(TEXT["run_button"]) and domains:
                 "Personalized Message": message
             })
 
-        df_salesflow = pd.DataFrame(records)
         if first_example:
             st.markdown(TEXT["example_message"])
             st.info(first_example)
+
+        # Show editable messages
+        st.markdown("### ✏️ Step 4 – Review & Edit Messages")
+        edited_messages = []
+        for i, record in enumerate(records):
+            with st.expander(f"{record['First Name']} – {record['Job Title']} at {record['Company']}"):
+                default_msg = record["Personalized Message"]
+                edited = st.text_area(f"Edit message for {record['First Name']}:", value=default_msg, key=f"msg_{i}")
+                record["Personalized Message"] = edited
+                edited_messages.append(record)
+
+        df_salesflow = pd.DataFrame(edited_messages)
 
         buffer_xlsx = BytesIO()
         df_qualified.to_excel(buffer_xlsx, index=False)
@@ -211,7 +222,7 @@ if st.button(TEXT["run_button"]) and domains:
             zipf.writestr("qualified_leads.xlsx", buffer_xlsx.getvalue())
             zipf.writestr("salesflow_leads.csv", buffer_csv.getvalue())
 
-        st.markdown("### 📥 Step 4 – Export Results")
+        st.markdown("### 📥 Step 5 – Export Results")
         st.dataframe(df_qualified, use_container_width=True)
         st.download_button(TEXT["download_xlsx"], data=buffer_xlsx.getvalue(), file_name="qualified_leads.xlsx")
         st.download_button(TEXT["download_csv"], data=buffer_csv.getvalue(), file_name="salesflow_leads.csv")
