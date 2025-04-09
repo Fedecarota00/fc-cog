@@ -70,7 +70,7 @@ def get_leads_from_hunter(domain):
         email["company"] = company
     return emails, None
 
-def filter_leads(leads, score_threshold):
+def filter_leads(leads):
     qualified = []
     for lead in leads:
         email = lead.get("value")
@@ -171,7 +171,7 @@ if st.button(TEXT["run_button"]) and domains:
             if error:
                 st.error(error)
                 continue
-            qualified = filter_leads(leads, SCORE_THRESHOLD)
+            qualified = filter_leads(leads)
             st.success(TEXT["qualified_count"].format(domain=domain, count=len(qualified)))
             all_qualified.extend(qualified)
             time.sleep(1.5)
