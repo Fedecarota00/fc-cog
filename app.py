@@ -7,69 +7,42 @@ from io import BytesIO
 import zipfile
 import os
 import openai
-from translations import TEXTS  # Import translations from external file
+from translations import TEXTS
+from jobpositions import JOB_KEYWORDS
 
 # === STREAMLIT CONFIG ===
-st.set_page_config(page_title="Lead Qualifier", layout="centered")
-
-# === LOGO ===
-logo_path = "ecr_logo_resized.png"
-if os.path.exists(logo_path):
-    st.image(logo_path, width=120)
+st.set_page_config(page_title="Lead Qualifier", layout="wide")
 
 # === LANGUAGE SELECTION ===
-language = st.selectbox("🌍 Choose your language:", list(TEXTS.keys()))
+st.sidebar.image("ecr_logo_resized.png", width=120)
+language = st.sidebar.selectbox("🌍 Choose your language:", list(TEXTS.keys()))
 TEXT = TEXTS[language]
 
-# === TITLE & INTRO ===
+# === TITLE & INTRO SECTION ===
 st.markdown(f"""
-    <div style="background-color: #1565c0; padding: 0.8rem 1.2rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+    <div style="background-color: #1565c0; padding: 1rem 1.5rem; border-radius: 0.5rem; margin-bottom: 1rem;">
         <h2 style="margin: 0; color: white;">🔍 ECR Lead Qualification App</h2>
-    </div>
-    <div style="border-left: 5px solid #2c8cff; padding-left: 1em; background-color: #f0f8ff; border-radius: 5px;">
-        <p><strong>This application was developed by Federico Carota</strong> as part of his graduation thesis project at <strong>HU of Applied Sciences</strong>.</p>
-        <p>Combining verified email scoring, job title matching, and LinkedIn integration, the tool automates the identification of key financial decision-makers using smart filtering logic.</p>
-        <p>It is designed to streamline outreach workflows and increase the relevance of targeted leads.</p>
     </div>
 """, unsafe_allow_html=True)
 
-# === CONFIGURATION ===
+with st.expander("ℹ️ What is this tool?"):
+    st.markdown("""
+        **ECR Lead Qualification App** is a smart assistant that helps identify the most relevant financial professionals at a company.
+
+        You simply provide a company domain (e.g., `ing.com`) or upload a list, and the app:
+
+        - Uses **Hunter.io** to find verified email addresses.
+        - Filters contacts based on **job titles** that match financial decision-makers.
+        - Lets you **preview and generate** personalized LinkedIn messages with AI.
+        - Exports results into Excel or CSV for your outreach campaigns.
+
+        Built by Federico Carota as part of his thesis at HU University of Applied Sciences 🎓
+    """)
+
+# === API CONFIG ===
 HUNTER_API_KEY = st.secrets["HUNTER_API_KEY"]
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 PUBLIC_DOMAINS = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com"]
-
-# === JOB KEYWORDS ===
-JOB_KEYWORDS = ["Chief Executive Officer", "CEO", "Chief Financial Officer", "CFO", "Chief Operating Officer", "COO",
-    "Chief Investment Officer", "CIO", "Chief Risk Officer", "CRO", "Chief Compliance Officer", "CCO",
-    "Chief Accounting Officer", "CAO", "Head of Treasury", "Treasury Director", "Treasury Manager",
-    "Treasury Analyst", "Cash Manager", "Liquidity Manager", "Asset Liability Management Manager", "ALM Manager",
-    "Head of Finance", "Finance Director", "Financial Controller", "FC", "Accounting Manager",
-    "Financial Reporting Manager", "Financial Analyst", "FA", "Management Accountant", "Regulatory Reporting Analyst",
-    "Financial Planning and Analysis Manager", "FP&A Manager", "Portfolio Manager", "PM", "Investment Director",
-    "Fund Manager", "Buy-Side Analyst", "Sell-Side Analyst", "Investment Analyst", "Wealth Manager",
-    "Private Banker", "Risk Manager", "Credit Risk Analyst", "Operational Risk Officer", "Market Risk Manager",
-    "Compliance Officer", "Regulatory Affairs Manager", "Head of Strategy", "Strategy Director",
-    "Corporate Development Manager", "Mergers and Acquisitions Analyst", "M&A Analyst", "M&A Manager",
-    "Business Development Director", "BDD", "Relationship Manager", "RM", "Corporate Banker", "SME Banker",
-    "Credit Analyst", "Loan Officer", "Branch Manager", "Head of Trading", "Trader", "FX Trader", "Equity Trader",
-    "Fixed Income Trader", "Sales and Trading Analyst", "Market Analyst", "Internal Auditor", "Financial Crime Officer",
-    "IT Risk Manager", "Data Analyst", "Financial Technology Manager", "Chief Actuary", "Actuary", "Underwriter",
-    "Risk Pricing Analyst", "Claims Manager", "Claims Adjuster", "Operations Manager", "Policy Administration Officer",
-    "Insurance Product Manager", "Broker Relations Manager", "Insurance Sales Manager", "Business Development Executive",
-    "Reinsurance Analyst", "Reinsurance Manager", "Regulatory Compliance Officer", "Head of Finance Transformation",
-    "Head of Digital Banking", "Fintech Manager", "ESG Finance Lead", "Financial Risk and Control Manager",
-    "Data Governance Manager", "Procurement and Vendor Risk Manager", "Vice President of Finance", "VP Finance",
-    "Director of Finance", "Director of Treasury", "Director of Risk", "Director of Compliance", "Head of Function",
-    "VP of Function", "Director of Function", "Investment Manager", "Investment Assistant", "Head of Portfolio Management",
-    "Head of Fund Management", "Fund Assistant", "Head of Multi-Asset Equity", "Head of Fixed Income", "Chief Strategist",
-    "Strategist (Market/Financial)", "Chief Economist", "Head of Research", "Economist", "Chief Analyst",
-    "Analyst (Fund or Other)", "Head of Asset Management", "Asset Manager", "Head of Wealth Management",
-    "Wealth Adviser", "Chief Dealer", "Head of Money Markets", "Head of Capital Markets", "Chief Stockbroker",
-    "Head of Private Banking", "Head of Client Advisory", "Head of Client Assets", "Client Portfolio Manager",
-    "Head of HNWI", "Head of FX", "Head of Cash Management", "Head of Pensions", "Chief Investment Strategist",
-    "Executive Director Investment Risk", "Chief Of Investment Execution", "Head Of M&A",
-    "Liquidity Management & Financing", "Treasury", "Portfolio", "Asset", "Multi-asset", "Multi Asset"
-]
 
 # === FUNCTIONS ===
 def is_public_email(email):
@@ -143,10 +116,10 @@ def generate_ai_message(first_name, position, company):
     except:
         return f"Hi {first_name}, I’d love to connect regarding insights relevant to {position} at {company}."
 
-# === INPUT SECTION ===
+# === PAGE LAYOUT ===
+st.markdown("### 🔢 Step 1 – Upload or Enter Domains")
 SCORE_THRESHOLD = st.slider("Minimum confidence score", min_value=0, max_value=100, value=50)
 option = st.radio(TEXT['input_method'], (TEXT['manual_entry'], TEXT['upload_file']))
-st.markdown("""<hr style='border:1px solid #cccccc'>""", unsafe_allow_html=True)
 
 domains = []
 if option == TEXT['manual_entry']:
@@ -161,14 +134,16 @@ elif option == TEXT['upload_file']:
         domains = df_uploaded.iloc[:, 1].dropna().unique().tolist()
         st.success(TEXT['uploaded_success'].format(n=len(domains)))
 
-# === AI SECTION ===
-st.markdown("### 🤖 AI Message Generator")
-st.markdown(TEXT["ai_preview_instruction"])
-test_first_name = st.text_input(TEXT["first_name"], value="Alex")
-test_position = st.text_input(TEXT["job_title"], value="Chief Financial Officer")
-test_company = st.text_input(TEXT["company"], value="ING Bank")
-tone = st.radio(TEXT["message_tone"], ["Friendly", "Formal", "Data-driven", "Short & Punchy"], horizontal=True)
-custom_instruction = st.text_input(TEXT["custom_instruction"], placeholder="e.g. Mention we are macro research providers")
+# === AI MESSAGE GENERATION ===
+st.markdown("### 🤖 Step 2 – Preview an AI Message")
+col1, col2 = st.columns(2)
+with col1:
+    test_first_name = st.text_input(TEXT["first_name"], value="Alex")
+    test_position = st.text_input(TEXT["job_title"], value="Chief Financial Officer")
+    test_company = st.text_input(TEXT["company"], value="ING Bank")
+with col2:
+    tone = st.radio(TEXT["message_tone"], ["Friendly", "Formal", "Data-driven", "Short & Punchy"])
+    custom_instruction = st.text_input(TEXT["custom_instruction"], placeholder="e.g. Mention we are macro research providers")
 
 if st.button(TEXT["generate_message"]):
     tone_instructions = {
@@ -187,12 +162,14 @@ if st.button(TEXT["generate_message"]):
     st.info(ai_msg)
 
 # === SALESFLOW ===
+st.markdown("### 💬 Step 3 – Customize Your Campaign Message")
 st.markdown(TEXT["salesflow_message_label"])
 use_ai = st.checkbox(TEXT["use_ai"], value=True)
 default_template = "Hi {first_name}, I came across your profile as {position} at {company} – I'd love to connect!"
 user_template = st.text_area(TEXT["template_label"], value=default_template)
 
-# === RUN ===
+# === RUN QUALIFICATION ===
+st.markdown("### 🚀 Step 4 – Run Lead Qualification")
 if st.button(TEXT["run_button"]) and domains:
     all_qualified = []
     with st.spinner(TEXT['processing']):
@@ -246,14 +223,13 @@ if st.button(TEXT["run_button"]) and domains:
             zipf.writestr("qualified_leads.xlsx", buffer_xlsx.getvalue())
             zipf.writestr("salesflow_leads.csv", buffer_csv.getvalue())
 
+        st.markdown("### 📥 Step 5 – Export Results")
         st.dataframe(df_qualified, use_container_width=True)
         st.download_button(TEXT["download_xlsx"], data=buffer_xlsx.getvalue(), file_name="qualified_leads.xlsx")
         st.download_button(TEXT["download_csv"], data=buffer_csv.getvalue(), file_name="salesflow_leads.csv")
         st.download_button(TEXT["download_zip"], data=zip_buffer.getvalue(), file_name="lead_outputs.zip")
     else:
         st.warning(TEXT["no_results"])
-
-
 
 
 
