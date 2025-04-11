@@ -82,7 +82,7 @@ def job_matches(position):
     if not position:
         return False
     position = position.lower()
-    return any(set(keyword.lower().split()).issubset(set(position.split())) for keyword in JOB_KEYWORDS)
+    return any(keyword.lower() in position for keyword in JOB_KEYWORDS)
 
 def get_leads_from_hunter(domain):
     url = f"https://api.hunter.io/v2/domain-search?domain={domain}&api_key={HUNTER_API_KEY}&limit=10"
