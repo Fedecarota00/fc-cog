@@ -41,7 +41,6 @@ HUNTER_API_KEY = st.secrets["HUNTER_API_KEY"]
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 PUBLIC_DOMAINS = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com"]
 
-# === KEYWORDS ===
 JOB_KEYWORDS = [
     "Chief Executive Officer", "CEO", "Chief Financial Officer", "CFO", "Chief Operating Officer", "COO",
     "Chief Investment Officer", "CIO", "Chief Risk Officer", "CRO", "Chief Compliance Officer", "CCO",
@@ -103,9 +102,6 @@ def get_leads_from_hunter(domain):
 
 def filter_leads(leads):
     qualified = []
-    if st.checkbox("Show raw Hunter.io results (debug mode)"):
-        st.markdown("#### Raw Contacts")
-        st.json(leads)
     for lead in leads:
         email = lead.get("value")
         position = lead.get("position")
@@ -123,6 +119,147 @@ def filter_leads(leads):
                 "Company Domain": lead.get("domain")
             })
     return qualified
+
+def split_full_name(full_name):
+    parts = full_name.strip().split()
+    return (parts[0], " ".join(parts[1:])) if parts else ("", "")
+
+def generate_ai_message(first_name, position, company, tone=None, custom_instruction=None):
+    base_prompt = (
+        f"You're writing a LinkedIn connection request to {first_name}, "
+        f"who is a {position} at {company}."
+    )
+
+    tone_instructions = {
+        "Friendly": "Write in a warm, conversational tone.",
+        "Formal": "Use a professional and respectful tone.",
+        "Data-driven": "Use language that emphasizes insights and value.",
+        "Short & Punchy": "Be concise, bold, and impactful."
+    }
+
+    tone_text = tone_instructions.get(tone, "") if tone else ""
+    custom_text = custom_instruction if custom_instruction else ""
+
+    prompt = f"{base_prompt} {tone_text} {custom_text} Keep it under 250 characters."
+
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a LinkedIn outreach assistant."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.9,
+            max_tokens=100
+        )
+        return response['choices'][0]['message']['content'].strip()
+    except:
+        return f"Hi {first_name}, I’d love to connect regarding insights relevant to {position} at {company}."
+
+# === PAGE LAYOUT ===
+st.markdown("### Step 1 – Upload or Enter Company Domains")
+option = st.radio(TEXT['input_method'], (TEXT['manual_entry'], TEXT['upload_file']))
+
+domains = []
+if option == TEXT['manual_entry']:
+    st.markdown(f"**{TEXT['enter_domain']}**")
+    domain_input = st.text_input("e.g. ing.com")
+    if domain_input:
+        domains.append(domain_input.strip())
+elif option == TEXT['upload_file']:
+    uploaded_file = st.file_uploader(TEXT['upload_instruction'], type="xlsx")
+    if uploaded_file:
+        df_uploaded = pd.read_excel(uploaded_file)
+        domains = df_uploaded.iloc[:, 1].dropna().unique().tolist()
+        st.success(TEXT['uploaded_success'].format(n=len(domains)))
+
+# === AI MESSAGE GENERATION ===
+if "ai_template" not in st.session_state:
+    st.session_state.ai_template = ""
+
+st.markdown("### Step 2 – Preview a Sample Message")
+col1, col2 = st.columns(2)
+with col1:
+    test_first_name = st.text_input(TEXT["first_name"], value="Alex")
+    test_position = st.text_input(TEXT["job_title"], value="Chief Financial Officer")
+    test_company = st.text_input(TEXT["company"], value="ING Bank")
+with col2:
+    tone = st.radio(TEXT["message_tone"], ["Friendly", "Formal", "Data-driven", "Short & Punchy"])
+    custom_instruction = st.text_input(TEXT["custom_instruction"], placeholder="e.g. Mention we are macro research providers")
+
+if st.button(TEXT["generate_message"]):
+    ai_msg = generate_ai_message(test_first_name, test_position, test_company, tone, custom_instruction)
+    st.session_state.ai_template = ai_msg
+    st.success(TEXT["ai_result"])
+    st.info(ai_msg)
+
+# === EDIT MESSAGE TEMPLATE ===
+st.markdown("### Step 3 – Customize the Message Template")
+st.markdown("You can edit the message below. Use placeholders like {first_name}, {position}, {company} to personalize.")
+
+first_name = test_first_name
+position = test_position
+company = test_company
+
+preview_message = st.session_state.ai_template or generate_ai_message(first_name, position, company, tone, custom_instruction)
+default_template = preview_message.replace(first_name, "{first_name}").replace(position, "{position}").replace(company, "{company}")
+final_template = st.text_area("Custom message template", value=default_template)
+
+# === RUN QUALIFICATION ===
+st.markdown("### Step 4 – Run Lead Qualification")
+if st.button(TEXT["run_button"]) and domains:
+    all_qualified = []
+    with st.spinner(TEXT['processing']):
+        for idx, domain in enumerate(domains):
+            st.write(f"[{idx+1}/{len(domains)}] Processing domain: {domain}")
+            leads, error = get_leads_from_hunter(domain)
+            if error:
+                st.error(error)
+                continue
+            qualified = filter_leads(leads)
+            st.success(TEXT["qualified_count"].format(domain=domain, count=len(qualified)))
+            all_qualified.extend(qualified)
+            time.sleep(1.5)
+
+    if all_qualified:
+        df_qualified = pd.DataFrame(all_qualified)
+        records = []
+        for lead in all_qualified:
+            first_name, last_name = split_full_name(lead["Full Name"])
+            company = lead["Company"]
+            position = lead["Position"]
+            message = final_template.format(
+                first_name=first_name,
+                position=position,
+                company=company
+            )
+            records.append({
+                "First Name": first_name,
+                "Last Name": last_name,
+                "LinkedIn URL": lead["LinkedIn"],
+                "Company": company,
+                "Job Title": position,
+                "Personalized Message": message
+            })
+
+        df_salesflow = pd.DataFrame(records)
+
+        buffer_xlsx = BytesIO()
+        df_qualified.to_excel(buffer_xlsx, index=False)
+        buffer_csv = BytesIO()
+        df_salesflow.to_csv(buffer_csv, index=False, encoding="utf-8-sig")
+        zip_buffer = BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w") as zipf:
+            zipf.writestr("qualified_leads.xlsx", buffer_xlsx.getvalue())
+            zipf.writestr("salesflow_leads.csv", buffer_csv.getvalue())
+
+        st.markdown("### Step 5 – Export Your Results")
+        st.dataframe(df_qualified, use_container_width=True)
+        st.download_button(TEXT["download_xlsx"], data=buffer_xlsx.getvalue(), file_name="qualified_leads.xlsx")
+        st.download_button(TEXT["download_csv"], data=buffer_csv.getvalue(), file_name="salesflow_leads.csv")
+        st.download_button(TEXT["download_zip"], data=zip_buffer.getvalue(), file_name="lead_outputs.zip")
+    else:
+        st.warning(TEXT["no_results"])
 
 
 
