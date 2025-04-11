@@ -97,15 +97,19 @@ def generate_ai_message(first_name, position, company, tone=None, custom_instruc
         f"You're writing a LinkedIn connection request to {first_name}, "
         f"who is a {position} at {company}."
     )
+
     tone_instructions = {
         "Friendly": "Write in a warm, conversational tone.",
         "Formal": "Use a professional and respectful tone.",
         "Data-driven": "Use language that emphasizes insights and value.",
         "Short & Punchy": "Be concise, bold, and impactful."
     }
+
     tone_text = tone_instructions.get(tone, "") if tone else ""
     custom_text = custom_instruction if custom_instruction else ""
+
     prompt = f"{base_prompt} {tone_text} {custom_text} Keep it under 250 characters."
+
     try:
         response = openai.ChatCompletion.create(
             model="gpt-4",
@@ -121,10 +125,10 @@ def generate_ai_message(first_name, position, company, tone=None, custom_instruc
         return f"Hi {first_name}, I’d love to connect regarding insights relevant to {position} at {company}."
 
 # === PAGE LAYOUT ===
-st.markdown(f"### {TEXT['step1']}")
+st.markdown("### Step 1 – Upload or Enter Company Domains")
 option = st.radio(TEXT['input_method'], (TEXT['manual_entry'], TEXT['upload_file']))
-domains = []
 
+domains = []
 if option == TEXT['manual_entry']:
     st.markdown(f"**{TEXT['enter_domain']}**")
     domain_input = st.text_input("e.g. ing.com")
@@ -132,15 +136,16 @@ if option == TEXT['manual_entry']:
         domains.append(domain_input.strip())
 elif option == TEXT['upload_file']:
     uploaded_file = st.file_uploader(TEXT['upload_instruction'], type="xlsx")
-    if uploaded_file is not None:
+    if uploaded_file:
         df_uploaded = pd.read_excel(uploaded_file)
         domains = df_uploaded.iloc[:, 1].dropna().unique().tolist()
         st.success(TEXT['uploaded_success'].format(n=len(domains)))
 
+# === AI MESSAGE GENERATION ===
 if "ai_template" not in st.session_state:
     st.session_state.ai_template = ""
 
-st.markdown(f"### {TEXT['step2']}")
+st.markdown("### Step 2 – Preview a Sample Message")
 col1, col2 = st.columns(2)
 with col1:
     test_first_name = st.text_input(TEXT["first_name"], value="Alex")
@@ -156,8 +161,9 @@ if st.button(TEXT["generate_message"]):
     st.success(TEXT["ai_result"])
     st.info(ai_msg)
 
-st.markdown(f"### {TEXT['step3']}")
-st.markdown("You can edit the message below. Use placeholders like `{first_name}`, `{position}`, `{company}` to personalize.")
+# === EDIT MESSAGE TEMPLATE ===
+st.markdown("### Step 3 – Customize the Message Template")
+st.markdown("You can edit the message below. Use placeholders like {first_name}, {position}, {company} to personalize.")
 
 first_name = test_first_name
 position = test_position
@@ -167,12 +173,13 @@ preview_message = st.session_state.ai_template or generate_ai_message(first_name
 default_template = preview_message.replace(first_name, "{first_name}").replace(position, "{position}").replace(company, "{company}")
 final_template = st.text_area("Custom message template", value=default_template)
 
-st.markdown(f"### {TEXT['step4']}")
+# === RUN QUALIFICATION ===
+st.markdown("### Step 4 – Run Lead Qualification")
 if st.button(TEXT["run_button"]) and domains:
     all_qualified = []
     with st.spinner(TEXT['processing']):
         for idx, domain in enumerate(domains):
-            st.write(f"[{idx+1}/{len(domains)}] Processing domain: `{domain}`")
+            st.write(f"[{idx+1}/{len(domains)}] Processing domain: {domain}")
             leads, error = get_leads_from_hunter(domain)
             if error:
                 st.error(error)
