@@ -8,7 +8,6 @@ import zipfile
 import os
 import openai
 from translations import TEXTS
-from jobpositions import JOB_KEYWORDS
 
 # === STREAMLIT CONFIG ===
 st.set_page_config(page_title=" FC Lead Qualificator", layout="wide")
@@ -41,6 +40,12 @@ with st.expander("About this tool"):
 HUNTER_API_KEY = st.secrets["HUNTER_API_KEY"]
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 PUBLIC_DOMAINS = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com"]
+
+JOB_KEYWORDS = [
+    "chief financial officer", "cfo", "finance director", "treasury", "head of finance",
+    "finance manager", "financial controller", "finance lead", "finance business partner",
+    "group controller", "vp of finance", "vice president finance", "senior finance manager"
+]
 
 # === FUNCTIONS ===
 def is_public_email(email):
