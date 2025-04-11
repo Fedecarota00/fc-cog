@@ -109,15 +109,14 @@ def filter_leads(leads):
         company = lead.get("company", "N/A")
         if not email or is_public_email(email):
             continue
-        if job_matches(position):
-            qualified.append({
-                "Email": email,
-                "Full Name": (lead.get("first_name") or "") + " " + (lead.get("last_name") or ""),
-                "Position": position,
-                "LinkedIn": linkedin,
-                "Company": company,
-                "Company Domain": lead.get("domain")
-            })
+        qualified.append({
+            "Email": email,
+            "Full Name": (lead.get("first_name") or "") + " " + (lead.get("last_name") or ""),
+            "Position": position,
+            "LinkedIn": linkedin,
+            "Company": company,
+            "Company Domain": lead.get("domain")
+        })
     return qualified
 
 def split_full_name(full_name):
