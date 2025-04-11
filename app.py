@@ -85,7 +85,7 @@ def job_matches(position):
     return any(keyword.lower() in position for keyword in JOB_KEYWORDS)
 
 def get_leads_from_hunter(domain):
-    url = f"https://api.hunter.io/v2/domain-search?domain={domain}&api_key={HUNTER_API_KEY}&limit=100"
+    url = f"https://api.hunter.io/v2/domain-search?domain={domain}&api_key={HUNTER_API_KEY}&limit=10"
     response = requests.get(url)
     if response.status_code != 200:
         try:
