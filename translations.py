@@ -26,7 +26,12 @@ TEXTS = {
         "example_message": "### 📄 Example AI-Generated Message",
         "download_xlsx": "⬇️ Download Qualified Leads (.xlsx)",
         "download_csv": "⬇️ Download Salesflow CSV",
-        "download_zip": "⬇️ Download All as ZIP"
+        "download_zip": "⬇️ Download All as ZIP",
+        "step1": "Step 1 – Upload or Enter Company Domains",
+        "step2": "Step 2 – Preview a Sample Message",
+        "step3": "Step 3 – Customize the Message Template",
+        "step4": "Step 4 – Run Lead Qualification",
+        "step5": "Step 5 – Export Your Results"
     },
     "Italian": {
         "input_method": "Scegli il metodo di inserimento:",
@@ -55,7 +60,12 @@ TEXTS = {
         "example_message": "### 📄 Esempio di Messaggio Generato con l'AI",
         "download_xlsx": "⬇️ Scarica Contatti Qualificati (.xlsx)",
         "download_csv": "⬇️ Scarica CSV per Salesflow",
-        "download_zip": "⬇️ Scarica Tutto in ZIP"
+        "download_zip": "⬇️ Scarica Tutto in ZIP",
+        "step1": "Passaggio 1 – Carica o Inserisci i Domini Aziendali",
+        "step2": "Passaggio 2 – Anteprima di un Messaggio di Esempio",
+        "step3": "Passaggio 3 – Personalizza il Modello di Messaggio",
+        "step4": "Passaggio 4 – Avvia la Qualificazione dei Lead",
+        "step5": "Passaggio 5 – Esporta i Tuoi Risultati"
     },
     "Dutch": {
         "input_method": "Kies invoermethode:",
@@ -84,7 +94,12 @@ TEXTS = {
         "example_message": "### 📄 Voorbeeld van AI-bericht",
         "download_xlsx": "⬇️ Download Gekwalificeerde Leads (.xlsx)",
         "download_csv": "⬇️ Download Salesflow CSV",
-        "download_zip": "⬇️ Download Alles als ZIP"
+        "download_zip": "⬇️ Download Alles als ZIP",
+        "step1": "Stap 1 – Upload of Voer Domeinen In",
+        "step2": "Stap 2 – Voorbeeld van een Bericht",
+        "step3": "Stap 3 – Pas het Berichtsjabloon aan",
+        "step4": "Stap 4 – Voer Leadkwalificatie Uit",
+        "step5": "Stap 5 – Exporteer je Resultaten"
     },
     "German": {
         "input_method": "Wählen Sie die Eingabemethode:",
@@ -113,7 +128,12 @@ TEXTS = {
         "example_message": "### 📄 Beispiel einer AI-generierten Nachricht",
         "download_xlsx": "⬇️ Qualifizierte Leads herunterladen (.xlsx)",
         "download_csv": "⬇️ Salesflow CSV herunterladen",
-        "download_zip": "⬇️ Alles als ZIP herunterladen"
+        "download_zip": "⬇️ Alles als ZIP herunterladen",
+        "step1": "Schritt 1 – Laden Sie Unternehmensdomains hoch oder geben Sie sie ein",
+        "step2": "Schritt 2 – Vorschau einer Beispielnachricht",
+        "step3": "Schritt 3 – Nachrichtenvorlage anpassen",
+        "step4": "Schritt 4 – Lead-Qualifizierung starten",
+        "step5": "Schritt 5 – Ergebnisse exportieren"
     },
     "French": {
         "input_method": "Choisissez la méthode de saisie :",
@@ -142,7 +162,12 @@ TEXTS = {
         "example_message": "### 📄 Exemple de message généré par l'IA",
         "download_xlsx": "⬇️ Télécharger les leads qualifiés (.xlsx)",
         "download_csv": "⬇️ Télécharger le CSV pour Salesflow",
-        "download_zip": "⬇️ Télécharger tout au format ZIP"
+        "download_zip": "⬇️ Télécharger tout au format ZIP",
+        "step1": "Étape 1 – Téléversez ou saisissez des domaines d’entreprise",
+        "step2": "Étape 2 – Aperçu d’un message exemple",
+        "step3": "Étape 3 – Personnalisez le modèle de message",
+        "step4": "Étape 4 – Lancez la qualification des leads",
+        "step5": "Étape 5 – Exportez vos résultats"
     },
     "Spanish": {
         "input_method": "Elige el método de entrada:",
@@ -171,6 +196,11 @@ TEXTS = {
         "example_message": "### 📄 Ejemplo de mensaje generado por IA",
         "download_xlsx": "⬇️ Descargar Leads Calificados (.xlsx)",
         "download_csv": "⬇️ Descargar CSV para Salesflow",
-        "download_zip": "⬇️ Descargar todo en ZIP"
+        "download_zip": "⬇️ Descargar todo en ZIP",
+        "step1": "Paso 1 – Carga o Introduce Dominios de Empresa",
+        "step2": "Paso 2 – Vista previa de un mensaje de ejemplo",
+        "step3": "Paso 3 – Personaliza la plantilla de mensaje",
+        "step4": "Paso 4 – Ejecutar calificación de leads",
+        "step5": "Paso 5 – Exporta tus resultados"
     }
 }
