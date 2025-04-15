@@ -19,6 +19,12 @@ st.sidebar.image("ecr_logo_resized1.png", width=120)
 language = st.sidebar.selectbox("Choose your language:", list(TEXTS.keys()))
 TEXT = TEXTS[language]
 
+REQUIRED_KEYS = ["step_1", "step_2", "step_3", "step_4", "run_button", "generate_message", "first_name", "job_title", "company", "message_tone", "custom_instruction", "ai_result", "qualified_count", "no_results", "download_xlsx", "download_csv", "download_zip", "download_sugarcrm", "upload_instruction", "uploaded_success", "enter_domain", "input_method", "manual_entry", "upload_file", "processing"]
+
+# Fill in defaults if any key is missing
+for key in REQUIRED_KEYS:
+    TEXT.setdefault(key, f"[{key}]")
+
 # === TITLE & INTRO SECTION ===
 st.markdown(f"""
     <div style="background-color: #0D18A1; padding: 1rem 1.5rem; border-radius: 0.5rem; margin-bottom: 1rem;">
