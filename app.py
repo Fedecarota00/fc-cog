@@ -7,23 +7,48 @@ from io import BytesIO
 import zipfile
 import os
 import openai
-# from translations import TEXTS
 from jobpositions import JOB_KEYWORDS
 
 # === STREAMLIT CONFIG ===
 st.set_page_config(page_title=" FC Lead Qualifier", layout="wide")
 
-# === LANGUAGE SELECTION ===
-st.sidebar.image("ecr_logo_resized.png", width=120)
-st.sidebar.image("ecr_logo_resized1.png", width=120)
-# language = st.sidebar.selectbox("Choose your language:", list(TEXTS.keys()))
-language = "English"
-
 # === SESSION STATE SETUP ===
 if "df_salesflow" not in st.session_state:
     st.session_state.df_salesflow = pd.DataFrame()
 
+# === UI TEXT ===
+TEXT = {
+    "step_1": "### Step 1 – Enter or Upload Domains",
+    "step_2": "### Step 2 – Create Your LinkedIn Message Template",
+    "step_3": "### Step 3 – Finalize the Template",
+    "step_4": "### Step 4 – Run Lead Qualification",
+    "input_method": "Choose input method:",
+    "manual_entry": "Manual Entry",
+    "upload_file": "Upload File",
+    "enter_domain": "Enter a single domain:",
+    "upload_instruction": "Upload Excel file with domains in the second column:",
+    "uploaded_success": "✅ Successfully loaded {n} domains from file.",
+    "first_name": "Enter test first name:",
+    "job_title": "Enter test job title:",
+    "company": "Enter test company:",
+    "message_tone": "Select tone:",
+    "custom_instruction": "Optional custom instruction:",
+    "generate_message": "Generate Sample Message",
+    "ai_result": "Generated message:",
+    "run_button": "Run Lead Qualification",
+    "processing": "🔍 Processing domains, please wait...",
+    "qualified_count": "✅ {count} qualified leads found for {domain}.",
+    "no_results": "No qualified leads found.",
+    "download_xlsx": "Download Excel",
+    "download_csv": "Download CSV",
+    "download_zip": "Download ZIP",
+    "download_sugarcrm": "Download SugarCRM CSV"
+}
+
 # === TITLE & INTRO SECTION ===
+st.sidebar.image("ecr_logo_resized.png", width=120)
+st.sidebar.image("ecr_logo_resized1.png", width=120)
+
 st.markdown(f"""
     <div style="background-color: #0D18A1; padding: 1rem 1.5rem; border-radius: 0.5rem; margin-bottom: 1rem;">
         <h2 style="margin: 0; color: white;">FC Lead Qualifier</h2>
