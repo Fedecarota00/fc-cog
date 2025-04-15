@@ -256,25 +256,24 @@ if st.button(TEXT["run_button"]) and domains:
         st.download_button(TEXT["download_sugarcrm"], data=buffer_sugar_csv.getvalue(), file_name="sugarcrm_leads.csv")
 
       if st.button("Send Qualified Leads to SugarCRM via Zapier"):
-    zap_success = 0
-    for _, row in st.session_state.df_salesflow.iterrows():
-        zapier_payload = {
-            "first_name": row["First Name"],
-            "last_name": row["Last Name"],
-            "email": row["Email"],
-            "job_title": row["Job Title"],
-            "company": row["Company"],
-            "linkedin_url": row["LinkedIn URL"],
-            "message": row["Personalized Message"],
-            "domain": row["Company Domain"]
-        }
+            zap_success = 0
+            for _, row in st.session_state.df_salesflow.iterrows():
+                zapier_payload = {
+                    "first_name": row["First Name"],
+                    "last_name": row["Last Name"],
+                    "email": row["Email"],
+                    "job_title": row["Job Title"],
+                    "company": row["Company"],
+                    "linkedin_url": row["LinkedIn URL"],
+                    "message": row["Personalized Message"],
+                    "domain": row["Company Domain"]
+                }
 
-        st.json(zapier_payload)  # 👈 This will show the payload nicely formatted
+                st.json(zapier_payload)  # 👈 DEBUG: Show each payload sent
 
-        if send_to_zapier(zapier_payload):
-            zap_success += 1
-
-    st.success(f"✅ {zap_success}/{len(st.session_state.df_salesflow)} leads sent to SugarCRM via Zapier."
+                if send_to_zapier(zapier_payload):
+                    zap_success += 1
+            st.success(f"✅ {zap_success}/{len(st.session_state.df_salesflow)} leads sent to SugarCRM via Zapier.")
     else:
         st.warning(TEXT["no_results"])
 
