@@ -45,6 +45,8 @@ TEXT = {
     "download_sugarcrm": "Download SugarCRM CSV"
 }
 
+st.write("✅ UI loaded - translation system disabled")
+
 # === TITLE & INTRO SECTION ===
 st.sidebar.image("ecr_logo_resized.png", width=120)
 st.sidebar.image("ecr_logo_resized1.png", width=120)
@@ -176,7 +178,7 @@ if not st.session_state.df_salesflow.empty:
 else:
     st.info("Run lead qualification first to see this button.")
 
-
+st.write("✅ End of script reached")
 
 
 
