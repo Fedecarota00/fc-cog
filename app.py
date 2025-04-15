@@ -58,7 +58,7 @@ def job_matches(position):
     return any(keyword.lower() in position for keyword in JOB_KEYWORDS)
 
 def get_leads_from_cognism(domain):
-    url = f"https://api.cognism.com/v2/people?domain={domain}&limit=10"
+    url = f"https://api.cognism.com/v1/domain?domain={domain}&limit=10"
     headers = {"Authorization": f"Bearer {COGNISM_API_KEY}"}
     response = requests.get(url, headers=headers)
 
