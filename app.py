@@ -256,35 +256,34 @@ if st.button(TEXT["run_button"]) and domains:
         st.download_button(TEXT["download_zip"], data=zip_buffer.getvalue(), file_name="lead_outputs.zip")
         st.download_button(TEXT["download_sugarcrm"], data=buffer_sugar_csv.getvalue(), file_name="sugarcrm_leads.csv")
 
-        # === DEBUG + SEND TO ZAPIER ===
-       if st.button("Send Qualified Leads to SugarCRM via Zapier"):
-    st.write("Button pressed! About to send leads to Zapier.")
+          # === SEND TO ZAPIER WITH DEBUG ===
+        if st.button("Send Qualified Leads to SugarCRM via Zapier"):
+            st.write("✅ Button pressed! About to send leads to Zapier.")
 
-    if "df_salesflow" not in st.session_state or st.session_state.df_salesflow.empty:
-        st.warning("⚠️ No leads available to send. Please run lead qualification first.")
-    else:
-        zap_success = 0
-        st.write("Sending to Zapier... Leads found:", len(st.session_state.df_salesflow))
+            if "df_salesflow" not in st.session_state or st.session_state.df_salesflow.empty:
+                st.warning("⚠️ No leads available to send. Please run lead qualification first.")
+            else:
+                zap_success = 0
+                st.write("📤 Sending to Zapier... Leads found:", len(st.session_state.df_salesflow))
 
-        for _, row in st.session_state.df_salesflow.iterrows():
-            zapier_payload = {
-                "first_name": row["First Name"],
-                "last_name": row["Last Name"],
-                "email": row["Email"],
-                "job_title": row["Job Title"],
-                "company": row["Company"],
-                "linkedin_url": row["LinkedIn URL"],
-                "message": row["Personalized Message"],
-                "domain": row["Company Domain"]
-            }
+                for _, row in st.session_state.df_salesflow.iterrows():
+                    zapier_payload = {
+                        "first_name": row["First Name"],
+                        "last_name": row["Last Name"],
+                        "email": row["Email"],
+                        "job_title": row["Job Title"],
+                        "company": row["Company"],
+                        "linkedin_url": row["LinkedIn URL"],
+                        "message": row["Personalized Message"],
+                        "domain": row["Company Domain"]
+                    }
 
-            st.json(zapier_payload)  # Show each payload
+                    st.json(zapier_payload)  # 👀 Visual debug: show what's being sent
 
-            if send_to_zapier(zapier_payload):
-                zap_success += 1
+                    if send_to_zapier(zapier_payload):
+                        zap_success += 1
 
-        st.success(f"✅ {zap_success}/{len(st.session_state.df_salesflow)} leads sent to SugarCRM via Zapier.")
-
+                st.success(f"✅ {zap_success}/{len(st.session_state.df_salesflow)} leads sent to SugarCRM via Zapier.")
 
 
 
