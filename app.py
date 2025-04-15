@@ -248,6 +248,7 @@ if st.button(TEXT["run_button"]) and domains:
         buffer_sugar_csv = BytesIO()
         df_sugarcrm.to_csv(buffer_sugar_csv, index=False, encoding="utf-8-sig")
 
+        # === EXPORT UI ===
         st.markdown("### Step 5 – Export Your Results")
         st.dataframe(df_qualified, use_container_width=True)
         st.download_button(TEXT["download_xlsx"], data=buffer_xlsx.getvalue(), file_name="qualified_leads.xlsx")
@@ -255,7 +256,8 @@ if st.button(TEXT["run_button"]) and domains:
         st.download_button(TEXT["download_zip"], data=zip_buffer.getvalue(), file_name="lead_outputs.zip")
         st.download_button(TEXT["download_sugarcrm"], data=buffer_sugar_csv.getvalue(), file_name="sugarcrm_leads.csv")
 
-      if st.button("Send Qualified Leads to SugarCRM via Zapier"):
+        # === DEBUG + SEND TO ZAPIER ===
+        if st.button("Send Qualified Leads to SugarCRM via Zapier"):
             zap_success = 0
             for _, row in st.session_state.df_salesflow.iterrows():
                 zapier_payload = {
@@ -269,10 +271,12 @@ if st.button(TEXT["run_button"]) and domains:
                     "domain": row["Company Domain"]
                 }
 
-                st.json(zapier_payload)  # 👈 DEBUG: Show each payload sent
+                # 🔍 Show JSON payload being sent
+                st.json(zapier_payload)
 
                 if send_to_zapier(zapier_payload):
                     zap_success += 1
+
             st.success(f"✅ {zap_success}/{len(st.session_state.df_salesflow)} leads sent to SugarCRM via Zapier.")
     else:
         st.warning(TEXT["no_results"])
