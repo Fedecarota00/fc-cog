@@ -43,6 +43,7 @@ with st.expander("About this tool"):
     """)
 
 # === API CONFIG ===
+COGNISM_API_KEY = st.secrets["COGNISM_API_KEY"]
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 PUBLIC_DOMAINS = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com"]
 
@@ -59,16 +60,19 @@ def job_matches(position):
 def get_leads_from_cognism(domain):
     url = f"https://api.cognism.com/v1/contacts/search?domain={domain}&limit=10"
     headers = {
-        "Authorization": f"Bearer {st.secrets['COGNISM_API_KEY']}"
+        "Authorization": f"Bearer {COGNISM_API_KEY}"
     }
     response = requests.get(url, headers=headers)
 
     if response.status_code != 200:
-        return [], f"Error fetching from Cognism: {response.status_code} – {response.text}"
+        try:
+            error_text = response.json().get("message", response.text)
+        except:
+            error_text = response.text
+        return [], f"Error fetching domain {domain}: {response.status_code} – {error_text}"
 
     data = response.json()
     contacts = []
-
     for item in data.get("contacts", []):
         company_info = item.get("company", {})
         contacts.append({
@@ -82,7 +86,6 @@ def get_leads_from_cognism(domain):
             "Direct Phone": item.get("phone"),
             "HQ Phone": company_info.get("phone")
         })
-
     return contacts, None
 
 def filter_leads(leads):
@@ -95,44 +98,18 @@ def filter_leads(leads):
         if not email or is_public_email(email):
             continue
         if job_matches(position):
-            qualified.append(lead)
+            qualified.append({
+                "Email": email,
+                "Full Name": lead.get("Full Name"),
+                "Position": position,
+                "LinkedIn": linkedin,
+                "Company": company,
+                "Company Domain": lead.get("Company Domain"),
+                "Mobile": lead.get("Mobile"),
+                "Direct Phone": lead.get("Direct Phone"),
+                "HQ Phone": lead.get("HQ Phone")
+            })
     return qualified
-
-def split_full_name(full_name):
-    parts = full_name.strip().split()
-    return (parts[0], " ".join(parts[1:])) if parts else ("", "")
-
-def generate_ai_message(first_name, position, company, tone=None, custom_instruction=None):
-    base_prompt = (
-        f"You're writing a LinkedIn connection request to {first_name}, "
-        f"who is a {position} at {company}."
-    )
-
-    tone_instructions = {
-        "Friendly": "Write in a warm, conversational tone.",
-        "Formal": "Use a professional and respectful tone.",
-        "Data-driven": "Use language that emphasizes insights and value.",
-        "Short & Punchy": "Be concise, bold, and impactful."
-    }
-
-    tone_text = tone_instructions.get(tone, "") if tone else ""
-    custom_text = custom_instruction if custom_instruction else ""
-
-    prompt = f"{base_prompt} {tone_text} {custom_text} Keep it under 250 characters."
-
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are a LinkedIn outreach assistant."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.9,
-            max_tokens=100
-        )
-        return response['choices'][0]['message']['content'].strip()
-    except:
-        return f"Hi {first_name}, I’d love to connect regarding insights relevant to {position} at {company}."
 
 def send_to_zapier(lead):
     zapier_url = st.secrets["ZAPIER_WEBHOOK_URL"]
@@ -142,6 +119,37 @@ def send_to_zapier(lead):
     except Exception as e:
         st.error(f"Error sending to Zapier: {e}")
         return False
+
+# === SEND TO ZAPIER WITH DEBUG ===
+if not st.session_state.df_salesflow.empty:
+    if st.button("Send Qualified Leads to SugarCRM via Zapier"):
+        st.write("✅ Button pressed! About to send leads to Zapier.")
+        st.write("📤 Sending to Zapier... Leads found:", len(st.session_state.df_salesflow))
+
+        zap_success = 0
+        for _, row in st.session_state.df_salesflow.iterrows():
+            zapier_payload = {
+                "first_name": row.get("First Name"),
+                "last_name": row.get("Last Name"),
+                "email": row.get("Email"),
+                "job_title": row.get("Job Title"),
+                "company": row.get("Company"),
+                "linkedin_url": row.get("LinkedIn URL"),
+                "message": row.get("Personalized Message"),
+                "domain": row.get("Company Domain"),
+                "mobile": row.get("Mobile"),
+                "direct_phone": row.get("Direct Phone"),
+                "hq_phone": row.get("HQ Phone")
+            }
+
+            st.json(zapier_payload)
+
+            if send_to_zapier(zapier_payload):
+                zap_success += 1
+
+        st.success(f"✅ {zap_success}/{len(st.session_state.df_salesflow)} leads sent to SugarCRM via Zapier.")
+else:
+    st.info("Run lead qualification first to see this button.")
 
 
 
