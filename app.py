@@ -234,7 +234,7 @@ if st.button(TEXT["run_button"]) and domains:
 
 # === EXPORT UI + ZAPIER ===
 if "df_salesflow" in st.session_state and not st.session_state.df_salesflow.empty:
-    st.markdown("### Step 5 – Select and Export Your Results")
+    st.markdown(TEXT["step_5"])
     st.markdown("✅ Use the checkboxes below to select leads to export or send via Zapier.")
 
     # 👇 Work with a clean local copy
