@@ -38,6 +38,7 @@ with st.expander("About this tool"):
         - Filtering based on relevant financial job titles
         - Generating personalized LinkedIn messages using AI
         - Allowing you to export contacts and messages in Excel and CSV format
+        - Allowing you to directly export leads to SugarCRM through Zapier.
 
         Developed by Federico Carota as part of a thesis project at HU University of Applied Sciences.
     """)
@@ -205,7 +206,7 @@ if st.button(TEXT["run_button"]) and domains:
 
     if all_qualified:
         df_qualified = pd.DataFrame(all_qualified)
-        st.session_state.df_qualified = df_qualified  # Store for Zapier button later
+        st.session_state.df_qualified = df_qualified
         records = []
         for lead in all_qualified:
             first_name, last_name = split_full_name(lead["Full Name"])
@@ -228,66 +229,93 @@ if st.button(TEXT["run_button"]) and domains:
             })
 
         df_salesflow = pd.DataFrame(records)
-        st.session_state.df_salesflow = df_salesflow  # Store for Zapier button later
+        df_salesflow["Select"] = pd.Series([False] * len(df_salesflow), dtype=bool)
+        st.session_state.df_salesflow = df_salesflow
 
+# === EXPORT UI + ZAPIER ===
+if "df_salesflow" in st.session_state and not st.session_state.df_salesflow.empty:
+    st.markdown("### Step 5 – Select and Export Your Results")
+    st.markdown("✅ Use the checkboxes below to select leads to export or send via Zapier.")
+
+    # 👇 Work with a clean local copy
+    df_export = st.session_state.df_salesflow.copy()
+
+    # Ensure Select column is bool type
+    if "Select" not in df_export.columns:
+        df_export["Select"] = False
+    df_export["Select"] = df_export["Select"].astype(bool)
+
+    # ✅ Move Select to first column
+    cols = df_export.columns.tolist()
+    if "Select" in cols:
+        cols.insert(0, cols.pop(cols.index("Select")))
+        df_export = df_export[cols]
+
+    # Render editable table
+    edited_df = st.data_editor(
+        df_export,
+        use_container_width=True,
+        key="lead_export_editor",
+        column_config={
+            "Select": st.column_config.CheckboxColumn(label="Select", default=False)
+        }
+    )
+
+    # Filter selected rows
+    selected_leads_df = edited_df[edited_df["Select"]]
+
+    st.caption(f"✅ You selected {len(selected_leads_df)} lead(s).")
+
+    # Only show buttons if something is selected
+    if not selected_leads_df.empty:
+        # === EXPORT LOGIC ===
         buffer_xlsx = BytesIO()
-        df_qualified.to_excel(buffer_xlsx, index=False)
+        selected_leads_df.drop(columns=["Select"]).to_excel(buffer_xlsx, index=False)
 
         buffer_csv = BytesIO()
-        df_salesflow.to_csv(buffer_csv, index=False, encoding="utf-8-sig")
+        selected_leads_df.drop(columns=["Select"]).to_csv(buffer_csv, index=False, encoding="utf-8-sig")
 
         zip_buffer = BytesIO()
         with zipfile.ZipFile(zip_buffer, "w") as zipf:
-            zipf.writestr("qualified_leads.xlsx", buffer_xlsx.getvalue())
-            zipf.writestr("salesflow_leads.csv", buffer_csv.getvalue())
+            zipf.writestr("salesflow_leads_selected.xlsx", buffer_xlsx.getvalue())
+            zipf.writestr("salesflow_leads_selected.csv", buffer_csv.getvalue())
 
-        df_sugarcrm = df_salesflow.rename(columns={
+        df_sugarcrm = selected_leads_df.rename(columns={
             "First Name": "first_name",
             "Last Name": "last_name",
             "Job Title": "title",
             "Company": "account_name",
             "LinkedIn URL": "linkedin_c",
             "Personalized Message": "description"
-        })
+        }).drop(columns=["Select"])
+
         buffer_sugar_csv = BytesIO()
         df_sugarcrm.to_csv(buffer_sugar_csv, index=False, encoding="utf-8-sig")
 
-        # === EXPORT UI ===
-        st.markdown("### Step 5 – Export Your Results")
-        st.dataframe(df_qualified, use_container_width=True)
-        st.download_button(TEXT["download_xlsx"], data=buffer_xlsx.getvalue(), file_name="qualified_leads.xlsx")
-        st.download_button(TEXT["download_csv"], data=buffer_csv.getvalue(), file_name="salesflow_leads.csv")
-        st.download_button(TEXT["download_zip"], data=zip_buffer.getvalue(), file_name="lead_outputs.zip")
-        st.download_button(TEXT["download_sugarcrm"], data=buffer_sugar_csv.getvalue(), file_name="sugarcrm_leads.csv")
+        st.download_button("⬇️ Download Excel", data=buffer_xlsx.getvalue(), file_name="qualified_leads_selected.xlsx")
+        st.download_button("⬇️ Download CSV", data=buffer_csv.getvalue(), file_name="salesflow_leads_selected.csv")
+        st.download_button("⬇️ Download ZIP", data=zip_buffer.getvalue(), file_name="lead_outputs_selected.zip")
+        st.download_button("⬇️ Download SugarCRM CSV", data=buffer_sugar_csv.getvalue(), file_name="sugarcrm_leads_selected.csv")
 
-          # === SEND TO ZAPIER WITH DEBUG ===
-if not st.session_state.df_salesflow.empty:
-    if st.button("Send Qualified Leads to SugarCRM via Zapier"):
-        st.write("✅ Button pressed! About to send leads to Zapier.")
-        st.write("📤 Sending to Zapier... Leads found:", len(st.session_state.df_salesflow))
-
-        zap_success = 0
-        for _, row in st.session_state.df_salesflow.iterrows():
-            zapier_payload = {
-                "first_name": row["First Name"],
-                "last_name": row["Last Name"],
-                "email": row["Email"],
-                "job_title": row["Job Title"],
-                "company": row["Company"],
-                "linkedin_url": row["LinkedIn URL"],
-                "message": row["Personalized Message"],
-                "domain": row["Company Domain"]
-            }
-
-            if send_to_zapier(zapier_payload):
-                zap_success += 1
-
-        st.success(f"✅ {zap_success}/{len(st.session_state.df_salesflow)} leads sent to SugarCRM via Zapier.")
-else:
-    st.info("Run lead qualification first to see this button.")
-
-
-
+        # === ZAPIER BUTTON ===
+        if st.button("📤 Send Selected Leads to SugarCRM via Zapier"):
+            zap_success = 0
+            for _, row in selected_leads_df.iterrows():
+                zapier_payload = {
+                    "first_name": row["First Name"],
+                    "last_name": row["Last Name"],
+                    "email": row["Email"],
+                    "job_title": row["Job Title"],
+                    "company": row["Company"],
+                    "linkedin_url": row["LinkedIn URL"],
+                    "message": row["Personalized Message"],
+                    "domain": row["Company Domain"]
+                }
+                if send_to_zapier(zapier_payload):
+                    zap_success += 1
+            st.success(f"✅ {zap_success}/{len(selected_leads_df)} selected leads sent to SugarCRM.")
+    else:
+        st.info("⚠️ No leads selected yet. Select at least one to show download and Zapier options.")
 
 
 
