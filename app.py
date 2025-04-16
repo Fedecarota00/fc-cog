@@ -37,7 +37,8 @@ with st.expander("About this tool"):
         - Searching professional contacts using Cognism
         - Filtering based on relevant financial job titles
         - Generating personalized LinkedIn messages using AI
-        - Allowing you to export contacts and messages in Excel and CSV format
+        - Allowing you to export contacts and messages in Excel and CSV format.
+        - Allowing you to import leads directly in SugarCRM.
 
         Developed by Federico Carota as part of a thesis project at HU University of Applied Sciences.
     """)
@@ -279,8 +280,6 @@ if not st.session_state.df_salesflow.empty:
                 "message": row["Personalized Message"],
                 "domain": row["Company Domain"]
             }
-
-            st.json(zapier_payload)
 
             if send_to_zapier(zapier_payload):
                 zap_success += 1
