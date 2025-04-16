@@ -31,7 +31,8 @@ TEXTS = {
         "step_1": "### Step 1 – Upload or Enter Company Domains",
         "step_2": "### Step 2 – Preview a Sample Message",
         "step_3": "### Step 3 – Customize the Message Template",
-        "step_4": "### Step 4 – Run Lead Qualification"
+        "step_4": "### Step 4 – Run Lead Qualification",
+        "step_5": "### Step 5 – Select and Export Your Results"
     },
     "Italian": {
         "input_method": "Scegli il metodo di inserimento:",
@@ -65,7 +66,8 @@ TEXTS = {
         "step_1": "### Passaggio 1 – Carica o Inserisci i Domini Aziendali",
         "step_2": "### Passaggio 2 – Anteprima di un Messaggio AI",
         "step_3": "### Passaggio 3 – Personalizza il Modello di Messaggio",
-        "step_4": "### Passaggio 4 – Avvia la Qualificazione dei Lead"
+        "step_4": "### Passaggio 4 – Avvia la Qualificazione dei Lead",
+        "step_5": "### Passaggio 5 – Seleziona ed esporta i tuoi risultati"
     },
     "Dutch": {
         "input_method": "Kies invoermethode:",
@@ -99,7 +101,8 @@ TEXTS = {
         "step_1": "### Stap 1 – Upload of Voer Domeinen In",
         "step_2": "### Stap 2 – Voorbeeld van een AI-bericht",
         "step_3": "### Stap 3 – Pas het Berichtensjabloon aan",
-        "step_4": "### Stap 4 – Start Leadkwalificatie"
+        "step_4": "### Stap 4 – Start Leadkwalificatie",
+        "step_5": "### Stap 5 – Selecteer en exporteer je resultaten"
     },
     "German": {
         "input_method": "Wählen Sie die Eingabemethode:",
@@ -133,7 +136,8 @@ TEXTS = {
         "step_1": "### Schritt 1 – Domainnamen hochladen oder eingeben",
         "step_2": "### Schritt 2 – Vorschau einer AI-Nachricht",
         "step_3": "### Schritt 3 – Nachrichtenvorlage anpassen",
-        "step_4": "### Schritt 4 – Lead-Qualifizierung starten"
+        "step_4": "### Schritt 4 – Lead-Qualifizierung starten",
+        "step_5": "### Schritt 5 – Ergebnisse auswählen und exportieren"
     },
     "French": {
         "input_method": "Choisissez la méthode de saisie :",
@@ -167,7 +171,8 @@ TEXTS = {
         "step_1": "### Étape 1 – Importez ou saisissez les domaines d’entreprise",
         "step_2": "### Étape 2 – Prévisualiser un message IA",
         "step_3": "### Étape 3 – Personnalisez le modèle de message",
-        "step_4": "### Étape 4 – Lancer la qualification des leads"
+        "step_4": "### Étape 4 – Lancer la qualification des leads",
+        "step_5": "### Étape 5 – Sélectionnez et exportez vos résultats"
     },
     "Spanish": {
         "input_method": "Elige el método de entrada:",
@@ -202,6 +207,7 @@ TEXTS = {
         "step_1": "### Paso 1 – Sube o introduce los dominios de empresa",
         "step_2": "### Paso 2 – Vista previa de un mensaje generado por IA",
         "step_3": "### Paso 3 – Personaliza la plantilla del mensaje",
-        "step_4": "### Paso 4 – Ejecutar la calificación de leads"
+        "step_4": "### Paso 4 – Ejecutar la calificación de leads",
+        "step_5": ### Paso 5 – Selecciona y exporta tus resultados"
     }
 }
