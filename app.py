@@ -34,17 +34,16 @@ with st.expander("About this tool"):
     st.markdown("""
         This Lead Qualification Tool helps identify financial decision-makers within companies by:
 
-        - Searching professional contacts using Cognism
+        - Searching professional contacts using Hunter.io
         - Filtering based on relevant financial job titles
         - Generating personalized LinkedIn messages using AI
-        - Allowing you to export contacts and messages in Excel and CSV format.
-        - Allowing you to import leads directly in SugarCRM.
+        - Allowing you to export contacts and messages in Excel and CSV format
 
         Developed by Federico Carota as part of a thesis project at HU University of Applied Sciences.
     """)
 
 # === API CONFIG ===
-COGNISM_API_KEY = st.secrets["COGNISM_API_KEY"]
+HUNTER_API_KEY = st.secrets["HUNTER_API_KEY"]
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 PUBLIC_DOMAINS = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com"]
 
@@ -58,42 +57,41 @@ def job_matches(position):
     position = position.lower()
     return any(keyword.lower() in position for keyword in JOB_KEYWORDS)
 
-def get_leads_from_cognism(domain):
-    url = f"https://api.cognism.com/v1/domain?domain={domain}&limit=10"
-    headers = {"Authorization": f"Bearer {COGNISM_API_KEY}"}
-    response = requests.get(url, headers=headers)
-
+def get_leads_from_hunter(domain):
+    url = f"https://api.hunter.io/v2/domain-search?domain={domain}&api_key={HUNTER_API_KEY}&limit=10"
+    response = requests.get(url)
     if response.status_code != 200:
         try:
-            error_text = response.json().get("message", "Unknown error")
+            error_text = response.json().get("errors", [{}])[0].get("details", "Unknown error")
         except:
             error_text = response.text
         return [], f"Error fetching domain {domain}: {response.status_code} – {error_text}"
-
     data = response.json()
-    leads = data.get("results", [])
-    qualified_leads = []
+    emails = data.get("data", {}).get("emails", [])
+    company = data.get("data", {}).get("organization")
+    for email in emails:
+        email["company"] = company
+    return emails, None
+
+def filter_leads(leads):
+    qualified = []
     for lead in leads:
-        email = lead.get("email")
-        position = lead.get("job_title")
-        linkedin = lead.get("linkedin_url")
-        full_name = lead.get("full_name", "")
-        first_name = lead.get("first_name", "")
-        last_name = lead.get("last_name", "")
-        company = lead.get("company_name")
-        domain_name = domain
-
-        qualified_leads.append({
-            "value": email,
-            "position": position,
-            "linkedin": linkedin,
-            "first_name": first_name or full_name.split()[0] if full_name else "",
-            "last_name": last_name or " ".join(full_name.split()[1:]) if full_name else "",
-            "company": company,
-            "domain": domain_name
-        })
-
-    return qualified_leads, None
+        email = lead.get("value")
+        position = lead.get("position")
+        linkedin = lead.get("linkedin") or lead.get("linkedin_url")
+        company = lead.get("company", "N/A")
+        if not email or is_public_email(email):
+            continue
+        if job_matches(position):
+            qualified.append({
+                "Email": email,
+                "Full Name": (lead.get("first_name") or "") + " " + (lead.get("last_name") or ""),
+                "Position": position,
+                "LinkedIn": linkedin,
+                "Company": company,
+                "Company Domain": lead.get("domain")
+            })
+    return qualified
 
 def split_full_name(full_name):
     parts = full_name.strip().split()
@@ -196,7 +194,7 @@ if st.button(TEXT["run_button"]) and domains:
     with st.spinner(TEXT['processing']):
         for idx, domain in enumerate(domains):
             st.write(f"[{idx+1}/{len(domains)}] Processing domain: {domain}")
-            leads, error = get_leads_from_cognism(domain)
+            leads, error = get_leads_from_hunter(domain)
             if error:
                 st.error(error)
                 continue
