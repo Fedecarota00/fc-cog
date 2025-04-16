@@ -208,6 +208,6 @@ TEXTS = {
         "step_2": "### Paso 2 – Vista previa de un mensaje generado por IA",
         "step_3": "### Paso 3 – Personaliza la plantilla del mensaje",
         "step_4": "### Paso 4 – Ejecutar la calificación de leads",
-        "step_5": ### Paso 5 – Selecciona y exporta tus resultados"
+        "step_5": "### Paso 5 – Selecciona y exporta tus resultados"
     }
 }
